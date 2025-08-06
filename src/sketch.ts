@@ -7,7 +7,7 @@ import libreBaskervilleBoldPath from './assets/fonts/Libre_Baskerville/LibreBask
 import './styles/sketch.css';
 
 // @ts-ignore
-import { renderFont, renderStrategyPoints, renderStrategyLines } from './render-font';
+import { renderFont, renderStrategyPoints, renderStrategyLines, renderStrategyRandomLines } from './render-font';
 
 function sketch(p5: p5): void {
 
@@ -19,12 +19,10 @@ function sketch(p5: p5): void {
     let libreBaskervilleBold : p5.Font;
     let text: string = "Zurich, Switzerland";
     let fontSize: number = 148;
-    function drawFont(): void {
+    function redrawFont(): void {
         p5.background(255);
-        // @ts-ignore
-        renderFont(p5, libreBaskervilleReg, text, fontSize, renderStrategyPoints);
+        renderFont(p5, libreBaskervilleReg, text, fontSize, 0.2, renderStrategyRandomLines);
     }
-
 
     p5.preload = (): void => {
         libreBaskervilleReg = p5.loadFont(libreBaskervilleRegPath);
@@ -35,13 +33,13 @@ function sketch(p5: p5): void {
     p5.setup = (): void => {
         p5.createCanvas(p5.windowWidth, p5.windowHeight);
 
-        drawFont();
+        redrawFont();
     };
 
     p5.windowResized = () : void => {
         p5.resizeCanvas(p5.windowWidth, p5.windowHeight);
 
-        drawFont();
+        redrawFont();
     }
 
     p5.keyPressed = () : void => {
@@ -55,7 +53,11 @@ function sketch(p5: p5): void {
             needsUpdate = true;
         }
 
-        if (needsUpdate) drawFont();
+        if (needsUpdate) redrawFont();
+    }
+
+    p5.mouseWheel = () : void => {
+        redrawFont();
     }
 
     // p5.draw = (): void => {
