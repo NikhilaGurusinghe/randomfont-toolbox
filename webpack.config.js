@@ -86,7 +86,7 @@ module.exports = {
         compress: true,
         host: '127.0.0.1',
         port: 8080,
-        hot: false,
+        hot: true,
         watchFiles: ['./src/**/*.ts'],
         liveReload: true,
         webSocketServer: false

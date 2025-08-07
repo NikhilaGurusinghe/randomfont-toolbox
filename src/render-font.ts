@@ -20,6 +20,8 @@ export function renderFont(p5: p5,
         { sampleFactor: fontSampleFactor }
     );
 
+
+
     fontRenderer(p5, points);
 }
 
@@ -44,8 +46,7 @@ export function renderStrategyLines(p5: p5, points:Point[]) : void {
         let dy = point2.y - point1.y;
         if (Math.sqrt(dx ** 2 + dy ** 2) > maxJumpDistance) continue;
 
-        p5.line(point1.x , point1.y ,
-            point2.x , point2.y );
+        p5.line(point1.x, point1.y, point2.x, point2.y);
 
         // p5.line(point1.x + p5.random(0, 3), point1.y + p5.random(0, 4),
         //     point2.x + p5.random(0, 3), point2.y + p5.random(0, 4));
@@ -77,5 +78,39 @@ export function renderStrategyRandomLines(p5: p5, points:Point[]) : void {
         } else {
             p5.line(point1.x, point1.y, point2.x, point2.y);
         }
+    }
+}
+
+export function renderStrategyBeowulf(p5: p5, points: Point[]) : void {
+    let maxJumpDistance = 20;
+    let randomUnit = 3;
+
+    points[0] = {
+        x: points[0].x + p5.random(-randomUnit, randomUnit),
+        y: points[0].y + p5.random(-randomUnit, randomUnit),
+    }
+
+    for (let i = 0; i < points.length; i++) {
+        // this was changed by the previous iteration
+        let point1: Point = points[i];
+        if (i + 1 >= points.length) break;
+        // this will be randomized on this iteration
+        let point2: Point = points[i + 1];
+
+        // Stopping "jump stitches" intra and inter letters
+        let dx = point2.x - point1.x;
+        let dy = point2.y - point1.y;
+        console.log(Math.sqrt(dx ** 2 + dy ** 2))
+        if (Math.sqrt(dx ** 2 + dy ** 2) > maxJumpDistance) continue;
+
+        randomUnit = p5.random(-5, 5);
+
+        let newPoint2: Point = {
+            x: point2.x + p5.random(-randomUnit, randomUnit),
+            y: point2.y + p5.random(-randomUnit, randomUnit),
+        }
+        points[i + 1] = newPoint2;
+
+        p5.line(point1.x, point1.y, newPoint2.x, newPoint2.y);
     }
 }

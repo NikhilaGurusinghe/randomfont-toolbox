@@ -6,8 +6,13 @@ import libreBaskervilleBoldPath from './assets/fonts/Libre_Baskerville/LibreBask
 
 import './styles/sketch.css';
 
-// @ts-ignore
-import { renderFont, renderStrategyPoints, renderStrategyLines, renderStrategyRandomLines } from './render-font';
+import {
+    renderFont, // @ts-ignore
+    renderStrategyPoints, // @ts-ignore
+    renderStrategyLines, // @ts-ignore
+    renderStrategyRandomLines, // @ts-ignore
+    renderStrategyBeowulf //@ts-ignore
+} from './render-font';
 
 function sketch(p5: p5): void {
 
@@ -18,10 +23,10 @@ function sketch(p5: p5): void {
     // @ts-ignore
     let libreBaskervilleBold : p5.Font;
     let text: string = "Zurich, Switzerland";
-    let fontSize: number = 148;
+    let fontSize: number = 128;
     function redrawFont(): void {
         p5.background(255);
-        renderFont(p5, libreBaskervilleReg, text, fontSize, 0.2, renderStrategyRandomLines);
+        renderFont(p5, libreBaskervilleReg, text, fontSize, 0.2, renderStrategyBeowulf);
     }
 
     p5.preload = (): void => {
