@@ -9,18 +9,17 @@ export function renderFont(p5: p5,
                            fontSampleFactor: number,
                            fontRenderer: FontRenderStrategy) : void {
 
+    const numberOfLines = text.split("\n").length;
 
     p5.textFont(font);
     p5.textSize(fontSize);
     let points: Point[] = font.textToPoints(
         text,
         (p5.windowWidth - p5.textWidth(text)) / 2,
-        (p5.windowHeight + p5.textAscent() - p5.textDescent()) / 2,
+        (p5.windowHeight + -numberOfLines * (p5.textAscent() - p5.textDescent())) / 2,
         fontSize,
         { sampleFactor: fontSampleFactor }
     );
-
-
 
     fontRenderer(p5, points);
 }
@@ -83,13 +82,20 @@ export function renderStrategyRandomLines(p5: p5, points:Point[]) : void {
 
 export function renderStrategyBeowulf(p5: p5, points: Point[]) : void {
     let maxJumpDistance = 20;
-    let randomUnit = 3;
+    let randomUnitModifier = 0.005;
+    console.log("Random Unit Modifier is: " + randomUnitModifier);
+    let randomUnit = 2;
+    console.log("Random Unit: " + randomUnit);
 
     points[0] = {
         x: points[0].x + p5.random(-randomUnit, randomUnit),
         y: points[0].y + p5.random(-randomUnit, randomUnit),
     }
 
+    p5.push();
+    p5.strokeWeight(0);
+    p5.fill(12.5);
+    p5.beginShape();
     for (let i = 0; i < points.length; i++) {
         // this was changed by the previous iteration
         let point1: Point = points[i];
@@ -100,17 +106,24 @@ export function renderStrategyBeowulf(p5: p5, points: Point[]) : void {
         // Stopping "jump stitches" intra and inter letters
         let dx = point2.x - point1.x;
         let dy = point2.y - point1.y;
-        console.log(Math.sqrt(dx ** 2 + dy ** 2))
-        if (Math.sqrt(dx ** 2 + dy ** 2) > maxJumpDistance) continue;
+        if (Math.sqrt(dx ** 2 + dy ** 2) > maxJumpDistance) {
+            p5.endShape(p5.CLOSE);
+            p5.beginShape();
+            continue;
+        }
 
-        randomUnit = p5.random(-5, 5);
+        randomUnit = p5.random(
+            -10 * p5.noise(randomUnitModifier),
+            10 * p5.noise(randomUnitModifier)
+        );
 
-        let newPoint2: Point = {
+        points[i + 1] = {
             x: point2.x + p5.random(-randomUnit, randomUnit),
             y: point2.y + p5.random(-randomUnit, randomUnit),
-        }
-        points[i + 1] = newPoint2;
+        };
 
-        p5.line(point1.x, point1.y, newPoint2.x, newPoint2.y);
+        p5.vertex(point1.x, point1.y);
     }
+    p5.endShape(p5.CLOSE);
+    p5.pop();
 }

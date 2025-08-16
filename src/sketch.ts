@@ -22,11 +22,14 @@ function sketch(p5: p5): void {
     let libreBaskervilleItalic : p5.Font;
     // @ts-ignore
     let libreBaskervilleBold : p5.Font;
-    let text: string = "Zurich, Switzerland";
-    let fontSize: number = 128;
+    let text: string = "p"
+        // "Archaeopteryx, is a\n" +
+        // "genus of bird-like\n" +
+        // "dinosaurs.";
+    let fontSize: number = 148;
     function redrawFont(): void {
         p5.background(255);
-        renderFont(p5, libreBaskervilleReg, text, fontSize, 0.2, renderStrategyBeowulf);
+        renderFont(p5, libreBaskervilleReg, text, fontSize, 0.13, renderStrategyPoints);
     }
 
     p5.preload = (): void => {
@@ -56,14 +59,18 @@ function sketch(p5: p5): void {
         } else if (p5.key === "Backspace") {
             text = text.slice(0, text.length - 1);
             needsUpdate = true;
+        } else if (p5.key === "Enter") {
+            text += "\n";
+        } else if (p5.key === "ArrowUp") {
+            redrawFont();
         }
 
         if (needsUpdate) redrawFont();
     }
 
-    p5.mouseWheel = () : void => {
-        redrawFont();
-    }
+    // p5.mouseWheel = () : void => {
+    //     redrawFont();
+    // }
 
     // p5.draw = (): void => {
     //     p5.background(0);
