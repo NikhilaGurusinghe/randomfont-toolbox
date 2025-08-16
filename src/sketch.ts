@@ -1,4 +1,5 @@
 import p5 from 'p5';
+import OTF from 'opentype.js';
 
 import libreBaskervilleRegPath from './assets/fonts/Libre_Baskerville/LibreBaskerville-Regular.ttf';
 import libreBaskervilleItalicPath from './assets/fonts/Libre_Baskerville/LibreBaskerville-Italic.ttf';
@@ -7,39 +8,57 @@ import libreBaskervilleBoldPath from './assets/fonts/Libre_Baskerville/LibreBask
 import './styles/sketch.css';
 
 import {
-    renderFont, // @ts-ignore
-    renderStrategyPoints, // @ts-ignore
-    renderStrategyLines, // @ts-ignore
-    renderStrategyRandomLines, // @ts-ignore
-    renderStrategyBeowulf //@ts-ignore
-} from './render-font';
+    renderFontP5,                   // @ts-ignore
+    renderStrategyRandomPoints,     // @ts-ignore
+    renderStrategyPoints,           // @ts-ignore
+    renderStrategyOutlined,         // @ts-ignore
+    renderStrategyRandomOutlined,   // @ts-ignore
+    renderStrategyFilled,           // @ts-ignore
+    renderStrategyBeowulf           // @ts-ignore
+} from './render-font-p5';
 
 function sketch(p5: p5): void {
 
-    // @ts-ignore
-    let libreBaskervilleReg : p5.Font;
-    // @ts-ignore
-    let libreBaskervilleItalic : p5.Font;
-    // @ts-ignore
-    let libreBaskervilleBold : p5.Font;
-    let text: string = "p"
+    let libreBaskervilleRegP5 : p5.Font;            // @ts-ignore
+    let libreBaskervilleRegOTF : OTF.Font;     // @ts-ignore
+
+    let libreBaskervilleItalic : p5.Font;           // @ts-ignore
+
+    let libreBaskervilleBold : p5.Font;             // @ts-ignore
+
+    let text: string = "Archaeopteryx";
         // "Archaeopteryx, is a\n" +
         // "genus of bird-like\n" +
         // "dinosaurs.";
     let fontSize: number = 148;
     function redrawFont(): void {
         p5.background(255);
-        renderFont(p5, libreBaskervilleReg, text, fontSize, 0.13, renderStrategyPoints);
+        renderFontP5(p5, libreBaskervilleRegP5, text, fontSize, 0.13, renderStrategyBeowulf);
     }
 
+    // p5 font initialization
     p5.preload = (): void => {
-        libreBaskervilleReg = p5.loadFont(libreBaskervilleRegPath);
+        libreBaskervilleRegP5 = p5.loadFont(libreBaskervilleRegPath);
         libreBaskervilleItalic = p5.loadFont(libreBaskervilleItalicPath);
         libreBaskervilleBold = p5.loadFont(libreBaskervilleBoldPath);
     }
 
     p5.setup = (): void => {
         p5.createCanvas(p5.windowWidth, p5.windowHeight);
+
+        // opentype.js font initialization
+        OTF.load(libreBaskervilleRegPath, (error, font): void => {
+           if (error) {
+               console.log("OTF.js | " + libreBaskervilleRegPath + " could not be loaded: " + error);
+           } else {
+               if (font !== undefined) {
+                   libreBaskervilleRegOTF = font;
+                   console.log("OTF.js | " + libreBaskervilleRegPath + " loaded.");
+               } else {
+                   console.log("OTF.js | " + libreBaskervilleRegPath + " could not be loaded: it was undefined");
+               }
+           }
+        });
 
         redrawFont();
     };

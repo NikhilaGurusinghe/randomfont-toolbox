@@ -1,13 +1,14 @@
 import p5 from 'p5';
 
+
 type FontRenderStrategy = (p5: p5, points: Point[]) => void;
 
-export function renderFont(p5: p5,
-                           font: p5.Font,
-                           text: string,
-                           fontSize: number,
-                           fontSampleFactor: number,
-                           fontRenderer: FontRenderStrategy) : void {
+export function renderFontP5(p5: p5,
+                             font: p5.Font,
+                             text: string,
+                             fontSize: number,
+                             fontSampleFactor: number,
+                             fontRenderer: FontRenderStrategy) : void {
 
     const numberOfLines = text.split("\n").length;
 
@@ -24,7 +25,7 @@ export function renderFont(p5: p5,
     fontRenderer(p5, points);
 }
 
-export function renderStrategyPoints(p5: p5, points: Point[]) : void {
+export function renderStrategyRandomPoints(p5: p5, points: Point[]) : void {
     p5.strokeWeight(1.75);
 
     for (let p of points) {
@@ -32,7 +33,16 @@ export function renderStrategyPoints(p5: p5, points: Point[]) : void {
     }
 }
 
-export function renderStrategyLines(p5: p5, points:Point[]) : void {
+export function renderStrategyPoints(p5: p5, points: Point[]) : void {
+    p5.strokeWeight(2);
+
+    for (let i = 0; i < points.length; i++){
+        let p = points[i];
+        p5.point(p.x, p.y);
+    }
+}
+
+export function renderStrategyOutlined(p5: p5, points:Point[]) : void {
     let maxJumpDistance = 7;
 
     for (let i = 0; i < points.length; i++) {
@@ -47,13 +57,10 @@ export function renderStrategyLines(p5: p5, points:Point[]) : void {
 
         p5.line(point1.x, point1.y, point2.x, point2.y);
 
-        // p5.line(point1.x + p5.random(0, 3), point1.y + p5.random(0, 4),
-        //     point2.x + p5.random(0, 3), point2.y + p5.random(0, 4));
-
     }
 }
 
-export function renderStrategyRandomLines(p5: p5, points:Point[]) : void {
+export function renderStrategyRandomOutlined(p5: p5, points:Point[]) : void {
     let maxJumpDistance = 7;
 
     for (let i = 0; i < points.length; i++) {
@@ -78,6 +85,65 @@ export function renderStrategyRandomLines(p5: p5, points:Point[]) : void {
             p5.line(point1.x, point1.y, point2.x, point2.y);
         }
     }
+}
+
+export function renderStrategyFilled(p5: p5, points: Point[]) : void {
+    let maxJumpDistance = 20;
+
+    p5.push();
+    p5.strokeWeight(0);
+    p5.beginShape();
+    for (let i = 0; i < points.length; i++) {
+        // this was changed by the previous iteration
+        let point1: Point = points[i];
+        if (i + 1 >= points.length) break;
+        // this will be randomized on this iteration
+        let point2: Point = points[i + 1];
+
+        // Stopping "jump stitches" intra and inter letters
+        let dx = point2.x - point1.x;
+        let dy = point2.y - point1.y;
+        if (Math.sqrt(dx ** 2 + dy ** 2) > maxJumpDistance) {
+            p5.endShape(p5.CLOSE);
+            p5.beginShape();
+            continue;
+        }
+
+
+        // Determining the winding direction of the points
+        // this is so counters show as holes in the type.
+        // textToPoints winds counters as clockwise whilst other parts of the type are wound anticlockwise :)
+        // i hate how linear algebra is the answer to this:
+        // https://en.wikipedia.org/wiki/Curve_orientation#Orientation_of_a_simple_polygon
+        // if (i + 2 < points.length) { // we need 3 points to calculate the winding direction
+        //     let point3: Point = points[i + 2];
+        //
+        //     let determinantOfPoints = ((point2.x * point3.y) + (point1.x * point2.y) + (point1.y * point3.x))
+        //         - ((point1.y * point2.x) + (point2.y * point3.x) + (point1.x * point3.y));
+        //
+        //     let currWindingDirection = determinantOfPoints < 0 ?
+        //         WindingDirection.CLOCKWISE : WindingDirection.ANTICLOCKWISE;
+        //
+        //     if (currWindingDirection === WindingDirection.CLOCKWISE) {
+        //         p5.fill(12.5);
+        //     } else {
+        //         p5.fill(255);
+        //     }
+        //
+        //     if (determinantOfPoints === 0) {
+        //         p5.fill(255);
+        //     }
+        //
+        //     prevWindingDirection = determinantOfPoints < 0 ?
+        //         WindingDirection.CLOCKWISE : WindingDirection.ANTICLOCKWISE;
+        //
+        //     console.log("currentDet: " + determinantOfPoints + ", oriented: " + prevWindingDirection);
+        // }
+
+        p5.vertex(point1.x, point1.y);
+    }
+    p5.endShape(p5.CLOSE);
+    p5.pop();
 }
 
 export function renderStrategyBeowulf(p5: p5, points: Point[]) : void {
