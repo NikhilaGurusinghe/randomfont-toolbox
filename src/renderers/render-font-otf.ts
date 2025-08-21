@@ -30,19 +30,35 @@ export function renderFont(p5: p5,
         characterCounters.push(counterCount);
 
         if (counterCount > 0) { // the current character has one or more counters!
+            let sampleX: number = 0;
+            let sampleY: number = 0;
+
             for (let command of characterPath.commands) {
                 // if we have a counter we want to find a point using the cardinal directions trick
-                switch (command.type) {
-                    case "C": // cubic bezier
+                // this will get us the "next" point but that is sufficient for us as it is a point
+                // on the outline of the shape
 
-                        break;
-                    case "L": // line to
-                        break;
-                    case "Q": // quadratic bezier
-                        break;
+                if (command.type === "C" ||  // cubic bezier
+                    command.type === "L" ||  // line to
+                    command.type === "Q") {  // quadratic bezier
+                    sampleX = command.x;
+                    sampleY = command.y;
+                    break;
                 }
-                // then sample this point in the textPath using ctx.isPointInPath
             }
+
+            // now we need to sample around the (sampleX, sampleY) coordinate we have and test against
+            // ctx.isPointInPath with the relevant characterPath as the path
+            const characterPath2D: Path2D = new Path2D(characterPath.toPathData());
+            const isInPath: boolean = ctx.isPointInPath(characterPath2D, p5.pixelDensity() * sampleX, p5.pixelDensity() * sampleY);
+
+
+
+
+
+
+            // then sample this point in the textPath using ctx.isPointInPath
+
         }
 
 
