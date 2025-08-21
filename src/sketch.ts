@@ -1,5 +1,5 @@
 import p5 from 'p5';
-import OTF from 'opentype.js';
+import otf from 'opentype.js';
 
 import libreBaskervilleRegPath from './assets/fonts/Libre_Baskerville/LibreBaskerville-Regular.ttf';
 import libreBaskervilleItalicPath from './assets/fonts/Libre_Baskerville/LibreBaskerville-Italic.ttf';
@@ -7,24 +7,20 @@ import libreBaskervilleBoldPath from './assets/fonts/Libre_Baskerville/LibreBask
 
 import './styles/sketch.css';
 
-import {
-    renderFontP5,                   // @ts-ignore
-    renderStrategyRandomPoints,     // @ts-ignore
-    renderStrategyPoints,           // @ts-ignore
-    renderStrategyOutlined,         // @ts-ignore
-    renderStrategyRandomOutlined,   // @ts-ignore
-    renderStrategyFilled,           // @ts-ignore
-    renderStrategyBeowulf           // @ts-ignore
-} from './render-font-p5';
+import * as FontRendererP5 from './renderers/render-font-p5';
 
 function sketch(p5: p5): void {
 
-    let libreBaskervilleRegP5 : p5.Font;            // @ts-ignore
-    let libreBaskervilleRegOTF : OTF.Font;     // @ts-ignore
+    // @ts-ignore
+    let libreBaskervilleRegP5 : p5.Font;
+    // @ts-ignore
+    let libreBaskervilleRegOTF : otf.Font;
 
-    let libreBaskervilleItalic : p5.Font;           // @ts-ignore
+    // @ts-ignore
+    let libreBaskervilleItalic : p5.Font;
 
-    let libreBaskervilleBold : p5.Font;             // @ts-ignore
+    // @ts-ignore
+    let libreBaskervilleBold : p5.Font;
 
     let text: string = "Archaeopteryx";
         // "Archaeopteryx, is a\n" +
@@ -33,7 +29,14 @@ function sketch(p5: p5): void {
     let fontSize: number = 148;
     function redrawFont(): void {
         p5.background(255);
-        renderFontP5(p5, libreBaskervilleRegP5, text, fontSize, 0.13, renderStrategyBeowulf);
+        FontRendererP5.render(
+            p5,
+            libreBaskervilleRegP5,
+            text,
+            fontSize,
+            0.13,
+            FontRendererP5.renderStrategyBeowulf
+        );
     }
 
     // p5 font initialization
@@ -47,15 +50,15 @@ function sketch(p5: p5): void {
         p5.createCanvas(p5.windowWidth, p5.windowHeight);
 
         // opentype.js font initialization
-        OTF.load(libreBaskervilleRegPath, (error, font): void => {
+        otf.load(libreBaskervilleRegPath, (error, font): void => {
            if (error) {
-               console.log("OTF.js | " + libreBaskervilleRegPath + " could not be loaded: " + error);
+               console.log("otf.js | " + libreBaskervilleRegPath + " could not be loaded: " + error);
            } else {
                if (font !== undefined) {
                    libreBaskervilleRegOTF = font;
-                   console.log("OTF.js | " + libreBaskervilleRegPath + " loaded.");
+                   console.log("otf.js | " + libreBaskervilleRegPath + " loaded.");
                } else {
-                   console.log("OTF.js | " + libreBaskervilleRegPath + " could not be loaded: it was undefined");
+                   console.log("otf.js | " + libreBaskervilleRegPath + " could not be loaded: it was undefined");
                }
            }
         });
@@ -86,16 +89,6 @@ function sketch(p5: p5): void {
 
         if (needsUpdate) redrawFont();
     }
-
-    // p5.mouseWheel = () : void => {
-    //     redrawFont();
-    // }
-
-    // p5.draw = (): void => {
-    //     p5.background(0);
-    //     p5.fill(255);
-    //     p5.ellipse(p5.mouseX, p5.mouseY, 100, 100);
-    // };
 }
 
 new p5(sketch);

@@ -1,14 +1,13 @@
 import p5 from 'p5';
 
-
 type FontRenderStrategy = (p5: p5, points: Point[]) => void;
 
-export function renderFontP5(p5: p5,
-                             font: p5.Font,
-                             text: string,
-                             fontSize: number,
-                             fontSampleFactor: number,
-                             fontRenderer: FontRenderStrategy) : void {
+export function render(p5: p5,
+                       font: p5.Font,
+                       text: string,
+                       fontSize: number,
+                       fontSampleFactor: number,
+                       fontRenderer: FontRenderStrategy) : void {
 
     const numberOfLines = text.split("\n").length;
 
