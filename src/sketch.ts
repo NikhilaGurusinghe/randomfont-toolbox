@@ -7,7 +7,10 @@ import libreBaskervilleRegPath from './assets/fonts/Libre_Baskerville/LibreBaske
 import libreBaskervilleItalicPath from './assets/fonts/Libre_Baskerville/LibreBaskerville-Italic.ttf';
 import libreBaskervilleBoldPath from './assets/fonts/Libre_Baskerville/LibreBaskerville-Bold.ttf';
 
+// @ts-ignore
 import * as P5FontRenderer from './renderers/render-font-p5';
+// @ts-ignore
+import * as OTFFontRenderer from './renderers/render-font-otf';
 
 function sketch(p5: p5): void {
 
@@ -20,13 +23,19 @@ function sketch(p5: p5): void {
     // @ts-ignore
     let libreBaskervilleBoldP5 : p5.Font;
 
-    let text: string = "Archaeopteryx";
+    let text: string = "A";
         // "Archaeopteryx, is a\n" +
         // "genus of bird-like\n" +
         // "dinosaurs.";
     let fontSize: number = 148;
     function redrawFont(): void {
         p5.background(255);
+        OTFFontRenderer.renderFont(
+          p5,
+          libreBaskervilleRegOTF,
+          text,
+          fontSize
+        );
         P5FontRenderer.render(
             p5,
             libreBaskervilleRegP5,
@@ -54,6 +63,7 @@ function sketch(p5: p5): void {
            } else {
                if (font !== undefined) {
                    libreBaskervilleRegOTF = font;
+                   redrawFont();
                    console.log("opentype.js | " + libreBaskervilleRegPath + " loaded.");
                } else {
                    console.log("opentype.js | " + libreBaskervilleRegPath + " could not be loaded: it was undefined");
@@ -61,7 +71,7 @@ function sketch(p5: p5): void {
            }
         });
 
-        redrawFont();
+        // redrawFont();
     };
 
     p5.windowResized = () : void => {
@@ -72,8 +82,6 @@ function sketch(p5: p5): void {
 
     p5.keyPressed = () : void => {
         let needsUpdate: boolean = false;
-
-        console.log(libreBaskervilleRegOTF.getPaths("hel", 0, 0, 123));
 
         if (p5.key.length === 1) {
             text += p5.key;
