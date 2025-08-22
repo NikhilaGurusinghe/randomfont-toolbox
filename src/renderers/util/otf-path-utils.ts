@@ -2,16 +2,17 @@ import otf from 'opentype.js';
 
 export function extractShapesFromPath(path: otf.Path) : otf.PathCommand[][] {
     let currShapeCounter: number = 0;
-    let currShapes: otf.PathCommand[][] = [[]];
+    let currShapes: otf.PathCommand[][] = [];
     for (let command of path.commands) {
+
         if (command.type !== "Z") { // if we aren't at a close shape command
             currShapes[currShapeCounter].push(command)
         } else {
+            currShapes.push([]);
             // if we are at a close shape command
             // push it
             currShapes[currShapeCounter].push(command)
             // increment the currShapeCounter
-            currShapes.push([]);
             currShapeCounter++;
         }
     }
