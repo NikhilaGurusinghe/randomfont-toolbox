@@ -15,130 +15,183 @@ export function renderFont(p5: p5,
                            // @ts-ignore
                            /*fontRenderer: FontRenderStrategy*/) : void {
 
-    // 1. Get number of counters per letter in text
-    // 2. iterate through the otf.Path generated from .getPath with this in mind -- this can tell
-    //    where we are within the character
-
     const toPathDataResolution: number = 3;
+    const sampleUnit: number = 2;
+    const sampleOffsetKernel: [x: number, y: number][] = generateSampleOffsetGrid(5, sampleUnit);
 
-    // console.log(font);
-
-    const textPaths: otf.Path[] = font.getPaths(text, 0, 0, fontSize);
-    // const textPath: otf.Path = font.getPath(text, 0, 0, fontSize);
-    // const textPath2D: Path2D = new Path2D(textPath.toPathData(toPathDataResolution));
+    const textPaths: otf.Path[] = font.getPaths(text, 200, 200, fontSize);
 
     const ctx: CanvasRenderingContext2D = p5.drawingContext;
 
     // pre-processing fonts
-    // const characterCounters: number[] = [];
-
-    for (const characterPath of textPaths) {
-
-        const counterCount: number = pathCounterCounter(characterPath);
+    for (const entireLetterformPath of textPaths) {
+        const counterCount: number = pathCounterCounter(entireLetterformPath);
         console.log("counterCount: " + counterCount);
-        // characterCounters.push(counterCount);
+        console.log(entireLetterformPath)
 
         if (counterCount > 0) { // the current character has one or more counters!
             // TODO need to get all the shapes (ending with Z here into an array and loop through that)
             // we can skip the first one as we can assume that is the base character shape and will be filled in
             // currently this does one iteration
 
-            let currCharacterShapes: otf.PathCommand[][] = extractShapesFromPath(characterPath);
+            let letterformComponentShapes: otf.PathCommand[][] = extractShapesFromPath(entireLetterformPath);
 
-            for (let characterShapePath of currCharacterShapes) {
-                let characterShapePath2D: Path2D = new Path2D(characterPath.toPathData(toPathDataResolution));
-                let samplePoint: DOMPoint | null = getFirstStartPointInPath(characterShapePath);
+            for (let letterformComponentShape of letterformComponentShapes) {
+                let samplePoint: Point | null = getFirstStartPointInPath(letterformComponentShape);
 
-                if (samplePoint?.x === null || samplePoint?.x === undefined ||
-                    samplePoint?.y === null || samplePoint?.y === undefined) {
+                if (samplePoint === null || samplePoint === undefined) {
                     console.error("render-font-otf.ts | samplePoint.x and samplePoint.y was null");
-                    return;
+                    break;
                 }
 
-                console.log("sampleX: " + samplePoint.x);
-                console.log("sampleY: " + samplePoint.y);
+                // TODO REMOVE THIS actually rendering font
+                for (let command of letterformComponentShape) {
+                    switch (command.type) {
+                        case "M":
+                            p5.beginShape();
+                            p5.vertex(command.x, command.y);
+                            break;
+                        case "L":
+                            p5.vertex(command.x, command.y);
+                            break;
+                        case "C":
+                            p5.bezierVertex(command.x1, command.y1, command.x2, command.y2, command.x, command.y);
+                            break;
+                        case "Q":
+                            p5.quadraticVertex(command.x1, command.y1, command.x, command.y);
+                            break;
+                        case "Z":
+                            p5.endShape(p5.CLOSE);
+                            break;
+                    }
+                }
+
+                // console.log("sampleX: " + samplePoint.x);
+                // console.log("sampleY: " + samplePoint.y);
 
                 // now we need to sample around the (sampleX, sampleY) coordinate we have and test against
-                // ctx.isPointInPath with the relevant characterPath as the path
-                const characterPath2D: Path2D = new Path2D(pathCommandsToPathData(characterShapePath, toPathDataResolution));
-                console.log(pathCommandsToPathData(characterShapePath, toPathDataResolution));
-                const sampleUnit: number = Math.max(5, fontSize * 0.05);
-                const sampleGridOffsets: [x: number, y: number][] = [
-                        [-sampleUnit, -sampleUnit], [-sampleUnit, 0], [-sampleUnit, sampleUnit],
-                        [0, -sampleUnit],           [0, 0],           [0, sampleUnit],
-                        [sampleUnit, -sampleUnit],  [sampleUnit, 0],  [sampleUnit, sampleUnit],
-                ];
+                // ctx.isPointInPath with the relevant entireLetterformPath as the path
 
-                let samplePointOffset: DOMPoint = new DOMPoint(samplePoint.x, samplePoint.y);
+                let samplePointOffset: Point = { x: samplePoint.x, y: samplePoint.y };
 
-                for (let sampleOffset of sampleGridOffsets) {
+                for (let sampleOffset of sampleOffsetKernel) {
                     samplePointOffset.x = samplePoint.x + sampleOffset[0];
                     samplePointOffset.y = samplePoint.y + sampleOffset[1];
 
+                    p5.push();
                     p5.stroke('pink');
-                    p5.strokeWeight(10);
+                    p5.strokeWeight(4);
                     p5.point(samplePointOffset.x, samplePointOffset.y);
+                    p5.pop();
 
                     // Searching to see if we're inside the current shape
                     // The p5.pixelDensity() part is CRUCIAL!
+                    const characterPath2D: Path2D =
+                        new Path2D(pathCommandsToPathData(letterformComponentShape, toPathDataResolution));
                     const isInPath: boolean = ctx.isPointInPath(
                         characterPath2D,
                         p5.pixelDensity() * samplePointOffset.x,
                         p5.pixelDensity() * samplePointOffset.y,
-                        "evenodd"
                     );
 
-                    console.log("sampleOffset " + sampleOffset);
-                    console.log("inner sampleXOffset: " + samplePointOffset.x);
-                    console.log("inner sampleYOffset: " + samplePointOffset.y);
-                    console.log("inner decided isInPath = " + isInPath);
+                    const isInStroke: boolean = ctx.isPointInStroke(
+                        characterPath2D,
+                        p5.pixelDensity() * samplePointOffset.x,
+                        p5.pixelDensity() * samplePointOffset.y,
+                    );
 
-                    // stop searching if we've found a point within the path
-                    if (isInPath) {
-                        console.log("Point was inside Path!");
-                        console.log("sampleXOffset: " + samplePoint.x);
-                        console.log("sampleYOffset: " + samplePoint.y);
+                    // console.log("sampleOffset " + sampleOffset);
+                    // console.log("inner sampleXOffset: " + samplePointOffset.x);
+                    // console.log("inner sampleYOffset: " + samplePointOffset.y);
+                    // console.log("inner decided isInPath = " + isInPath);
+
+                    // stop searching if we've found a point within the path and not on the stroke as this won't
+                    // show up in future isPointInPath calculations with the entire letterform
+                    if (isInPath && !isInStroke) {
+                        console.log("!!!!!!!!!!!!!");
+                        p5.push();
+                        p5.stroke('red');
+                        p5.strokeWeight(5);
+                        p5.point(samplePointOffset.x, samplePointOffset.y);
+                        p5.pop();
+
+                        let characterShapePath2D: Path2D = new Path2D(entireLetterformPath.toPathData(toPathDataResolution));
 
                         // then sample this point in the textPath using ctx.isPointInPath
-                        // TODO this should use characterPath to get a path2D instead of the entire text.
                         const isInPath: boolean = ctx.isPointInPath(
                             characterShapePath2D,
                             p5.pixelDensity() * samplePointOffset.x,
                             p5.pixelDensity() * samplePointOffset.y,
                         );
 
-                        console.log("Render decided isInPath = " + isInPath);
+                        const isInStroke: boolean = ctx.isPointInStroke(
+                            characterShapePath2D,
+                            p5.pixelDensity() * samplePointOffset.x,
+                            p5.pixelDensity() * samplePointOffset.y,
+                        );
+
+                        // we're only NOT in a counter/something that shouldn't be filled when
+                        // isInPath === FALSE && isInStroke === FALSE;
+                        if (isInPath || isInStroke) {
+
+                        }
+
+                        console.log("!!!!Render decided isInPath = " + isInPath);
+                        console.log("!!!!Render decided isInStroke = " + isInStroke);
 
                         break;
                     }
-
-                    console.log("----------------");
-
                 }
-
-                console.log("=================");
             }
         }
-
-        // for (let i = 12; i < path.commands.length; i++) {
-        //     let cmd = path.commands[i];
-        //     if (cmd.type === "M") {
-        //         beginShape();
-        //         vertex(cmd.x, cmd.y);
-        //     } else if (cmd.type === "L") {
-        //         vertex(cmd.x, cmd.y);
-        //     } else if (cmd.type === "C") {
-        //         bezierVertex(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
-        //     } else if (cmd.type === "Q") {
-        //         quadraticVertex(cmd.x1, cmd.y1, cmd.x, cmd.y);
-        //     } else if (cmd.type === "Z") {
-        //         endShape(CLOSE);
-        //     }
-        // }
-
     }
 
 
+
+    // actually rendering font
+
+    // for (const characterPath of textPaths) {
+    //     for (let command of characterPath.commands) {
+    //         switch (command.type) {
+    //             case "M":
+    //                 p5.beginShape();
+    //                 p5.vertex(command.x, command.y);
+    //                 break;
+    //             case "L":
+    //                 p5.vertex(command.x, command.y);
+    //                 break;
+    //             case "C":
+    //                 p5.bezierVertex(command.x1, command.y1, command.x2, command.y2, command.x, command.y);
+    //                 break;
+    //             case "Q":
+    //                 p5.quadraticVertex(command.x1, command.y1, command.x, command.y);
+    //                 break;
+    //             case "Z":
+    //                 p5.endShape(p5.CLOSE);
+    //                 break;
+    //         }
+    //     }
+    // }
+}
+
+function generateSampleOffsetGrid(sideLength: number, sampleUnit: number): [x: number, y: number][] {
+    if (sideLength % 2 === 0 ) {
+        sideLength += 1;
+        console.error(
+            "render-font-otf.ts | generateSampleOffsetGrid received an even side length of " + (sideLength - 1)
+            + ". The actual side length of the grid generated will be odd: " + sideLength);
+    }
+
+    let sampleOffsetGrid: [x: number, y: number][] = [];
+    let maxSampleUnitScale: number = Math.floor(sideLength / 2);
+
+    for (let i = maxSampleUnitScale; i >= -maxSampleUnitScale; i--) {
+        for (let j = -maxSampleUnitScale; j <= maxSampleUnitScale; j++) {
+            sampleOffsetGrid.push([j * sampleUnit, -i * sampleUnit])
+        }
+    }
+
+    return sampleOffsetGrid;
 }
 
 

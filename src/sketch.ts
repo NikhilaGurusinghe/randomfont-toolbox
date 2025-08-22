@@ -23,7 +23,7 @@ function sketch(p5: p5): void {
     // @ts-ignore
     let libreBaskervilleBoldP5 : p5.Font;
 
-    let text: string = "A";
+    let text: string = "%";
         // "Archaeopteryx, is a\n" +
         // "genus of bird-like\n" +
         // "dinosaurs.";
@@ -82,6 +82,8 @@ function sketch(p5: p5): void {
 
     p5.keyPressed = () : void => {
         let needsUpdate: boolean = false;
+
+        console.log("mouseX " + p5.mouseX + " | " + "mouseY " + p5.mouseY);
 
         if (p5.key.length === 1) {
             text += p5.key;
