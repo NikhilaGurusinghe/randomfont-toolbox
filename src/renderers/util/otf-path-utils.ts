@@ -19,8 +19,8 @@ export function extractShapesFromPath(path: otf.Path) : otf.PathCommand[][] {
     return currShapes;
 }
 
-export function getFirstStartPointInPath(path: otf.Path) : (DOMPoint | null) {
-    for (let command of path.commands) {
+export function getFirstStartPointInPath(pathCommands: otf.PathCommand[]) : (DOMPoint | null) {
+    for (let command of pathCommands) {
         if (command.type === "C" ||  // cubic bezier
             command.type === "L" ||  // line to
             command.type === "Q" ) {  // quadratic bezier
@@ -29,4 +29,31 @@ export function getFirstStartPointInPath(path: otf.Path) : (DOMPoint | null) {
     }
 
     return null;
+}
+
+export function pathCommandsToPathData(pathCommands: otf.PathCommand[], decimalPlaces: number) : string {
+    let pathData: string = "";
+
+    for (let command of pathCommands) {
+        pathData += command.type + " ";
+        switch (command.type) {
+            case "M":
+            case "L":
+                command.type += command.x.toFixed(decimalPlaces) + "," + command.y.toFixed(decimalPlaces);
+                break;
+            case "C":
+                command.type += command.x1.toFixed(decimalPlaces) + "," + command.y1.toFixed(decimalPlaces) + " " +
+                                command.x2.toFixed(decimalPlaces) + "," + command.y2.toFixed(decimalPlaces) + " " +
+                                command.x.toFixed(decimalPlaces) + "," + command.y.toFixed(decimalPlaces);
+                break;
+            case "Q":
+                command.type += command.x1.toFixed(decimalPlaces) + "," + command.y1.toFixed(decimalPlaces) + " " +
+                                command.x.toFixed(decimalPlaces) + "," + command.y.toFixed(decimalPlaces);
+                break;
+            case "Z":
+                break;
+        }
+    }
+
+    return pathData;
 }

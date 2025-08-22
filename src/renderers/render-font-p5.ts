@@ -147,9 +147,9 @@ export function renderStrategyFilled(p5: p5, points: Point[]) : void {
 
 export function renderStrategyBeowulf(p5: p5, points: Point[]) : void {
     let maxJumpDistance = 20;
-    let randomUnitModifier = 0.005;
+    let randomUnitModifier = 0.0000000000000000000000005;
     console.log("Random Unit Modifier is: " + randomUnitModifier);
-    let randomUnit = 2;
+    let randomUnit = 7;
     console.log("Random Unit: " + randomUnit);
 
     points[0] = {
@@ -176,11 +176,11 @@ export function renderStrategyBeowulf(p5: p5, points: Point[]) : void {
             p5.beginShape();
             continue;
         }
-
-        randomUnit = p5.random(
-            -10 * p5.noise(randomUnitModifier),
-            10 * p5.noise(randomUnitModifier)
-        );
+        //
+        // randomUnit = p5.random(
+        //     -10 * p5.noise(randomUnitModifier),
+        //     10 * p5.noise(randomUnitModifier)
+        // );
 
         points[i + 1] = {
             x: point2.x + p5.random(-randomUnit, randomUnit),
