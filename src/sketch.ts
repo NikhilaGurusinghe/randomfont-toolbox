@@ -8,9 +8,10 @@ import libreBaskervilleItalicPath from './assets/fonts/Libre_Baskerville/LibreBa
 import libreBaskervilleBoldPath from './assets/fonts/Libre_Baskerville/LibreBaskerville-Bold.ttf';
 
 // @ts-ignore
-import * as P5FontRenderer from './renderers/render-font-p5';
+import * as P5FontRenderer from './renderers/p5/render-font';
 // @ts-ignore
-import * as OTFFontRenderer from './renderers/render-font-otf';
+import * as OTFFontRenderer from './renderers/otf/render-font';
+import * as OTFFontRenderStrategy from './renderers/otf/render-strategy';
 
 function sketch(p5: p5): void {
 
@@ -23,7 +24,7 @@ function sketch(p5: p5): void {
     // @ts-ignore
     let libreBaskervilleBoldP5 : p5.Font;
 
-    let text: string = "ololAk%#";
+    let text: string = "Archaeopteryx";
         // "Archaeopteryx, is a\n" +
         // "genus of bird-like\n" +
         // "dinosaurs.";
@@ -31,10 +32,11 @@ function sketch(p5: p5): void {
     function redrawFont(): void {
         p5.background(255);
         OTFFontRenderer.renderFont(
-          p5,
-          libreBaskervilleRegOTF,
-          text,
-          fontSize
+            p5,
+            libreBaskervilleRegOTF,
+            text,
+            fontSize,
+            OTFFontRenderStrategy.freakTo
         );
         // P5FontRenderer.render(
         //     p5,

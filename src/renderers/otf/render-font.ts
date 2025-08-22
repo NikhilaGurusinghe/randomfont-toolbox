@@ -4,21 +4,21 @@ import {pathCounterCounter} from "./util/type-counters";
 import {extractShapesFromPath, getFirstStartPointInPath, pathCommandsToPathData} from "./util/otf-path-utils";
 
 // @ts-ignore
-type FontRenderStrategy = (p5: p5, path: otf.Path) => void;
-enum FillStatus {
+type FontRenderStrategy = (p5: p5, textPaths: otf.Path[], textFillStatuses: FillStatus[][]) => void;
+
+export enum FillStatus {
     FILLED = "filled",
     OPEN = "open"
 }
 
-const textForegroundColour = 0;
-const textBackgroundColour = 255;
+export const textForegroundColour = 0;
+export const textBackgroundColour = 255;
 
 export function renderFont(p5: p5,
                            font: otf.Font,
                            text: string,
                            fontSize: number,
-                           // @ts-ignore
-                           /*fontRenderer: FontRenderStrategy*/) : void {
+                           fontRenderer: FontRenderStrategy) : void {
 
     const textPath: otf.Path = font.getPath(text, 0, 0, fontSize, { kerning: true });
     const textBoundingBox: otf.BoundingBox = textPath.getBoundingBox();
@@ -30,46 +30,14 @@ export function renderFont(p5: p5,
         (p5.windowWidth - textWidth) / 2,
         (p5.windowHeight - textHeight + fontSize) / 2,
         fontSize,
-        { kerning: true });
+        { kerning: true }
+    );
 
     // pre-processing fonts
     const textFillStatuses: FillStatus[][] = getTextFillStatuses(p5, textPaths);
 
     // actually rendering font
-    p5.noStroke();
-    for (let characterIndex = 0; characterIndex < textPaths.length; characterIndex++){
-        const characterPath: otf.Path = textPaths[characterIndex];
-        const characterFillStatus: FillStatus[] = textFillStatuses[characterIndex];
-        let textFillStatusCounter: number = 0;
-
-        for (let command of characterPath.commands) {
-            if (characterFillStatus[textFillStatusCounter] === FillStatus.FILLED) {
-                p5.fill(textForegroundColour);
-            } else if (characterFillStatus[textFillStatusCounter] === FillStatus.OPEN) {
-                p5.fill(textBackgroundColour);
-            }
-
-            switch (command.type) {
-                case "M":
-                    p5.beginShape();
-                    p5.vertex(command.x, command.y);
-                    break;
-                case "L":
-                    p5.vertex(command.x, command.y);
-                    break;
-                case "C":
-                    p5.bezierVertex(command.x1, command.y1, command.x2, command.y2, command.x, command.y);
-                    break;
-                case "Q":
-                    p5.quadraticVertex(command.x1, command.y1, command.x, command.y);
-                    break;
-                case "Z":
-                    p5.endShape(p5.CLOSE);
-                    textFillStatusCounter++;
-                    break;
-            }
-        }
-    }
+    fontRenderer(p5, textPaths, textFillStatuses);
 }
 
 function generateSampleOffsetGrid(sideLength: number, sampleUnit: number): [x: number, y: number][] {
