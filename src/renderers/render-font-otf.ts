@@ -1,6 +1,4 @@
-﻿//TODO remove
-
-import p5 from 'p5';
+﻿import p5 from 'p5';
 import otf from 'opentype.js';
 import {pathCounterCounter} from "./util/type-counters";
 import {extractShapesFromPath, getFirstStartPointInPath, pathCommandsToPathData} from "./util/otf-path-utils";
@@ -12,6 +10,9 @@ enum FillStatus {
     OPEN = "open"
 }
 
+const textForegroundColour = 0;
+const textBackgroundColour = 255;
+
 export function renderFont(p5: p5,
                            font: otf.Font,
                            text: string,
@@ -19,40 +20,56 @@ export function renderFont(p5: p5,
                            // @ts-ignore
                            /*fontRenderer: FontRenderStrategy*/) : void {
 
+    const textPath: otf.Path = font.getPath(text, 0, 0, fontSize, { kerning: true });
+    const textBoundingBox: otf.BoundingBox = textPath.getBoundingBox();
+    const textHeight: number = textBoundingBox.y2 - textBoundingBox.y1;
+    const textWidth: number = textBoundingBox.x2 - textBoundingBox.x1;
 
-
-    const textPaths: otf.Path[] = font.getPaths(text, 200, 200, fontSize);
-
+    const textPaths: otf.Path[] = font.getPaths(
+        text,
+        (p5.windowWidth - textWidth) / 2,
+        (p5.windowHeight - textHeight + fontSize) / 2,
+        fontSize,
+        { kerning: true });
 
     // pre-processing fonts
-    console.log(getTextFillStatuses(p5, textPaths));
-
-
+    const textFillStatuses: FillStatus[][] = getTextFillStatuses(p5, textPaths);
 
     // actually rendering font
+    p5.noStroke();
+    for (let characterIndex = 0; characterIndex < textPaths.length; characterIndex++){
+        const characterPath: otf.Path = textPaths[characterIndex];
+        const characterFillStatus: FillStatus[] = textFillStatuses[characterIndex];
+        let textFillStatusCounter: number = 0;
 
-    // for (const characterPath of textPaths) {
-    //     for (let command of characterPath.commands) {
-    //         switch (command.type) {
-    //             case "M":
-    //                 p5.beginShape();
-    //                 p5.vertex(command.x, command.y);
-    //                 break;
-    //             case "L":
-    //                 p5.vertex(command.x, command.y);
-    //                 break;
-    //             case "C":
-    //                 p5.bezierVertex(command.x1, command.y1, command.x2, command.y2, command.x, command.y);
-    //                 break;
-    //             case "Q":
-    //                 p5.quadraticVertex(command.x1, command.y1, command.x, command.y);
-    //                 break;
-    //             case "Z":
-    //                 p5.endShape(p5.CLOSE);
-    //                 break;
-    //         }
-    //     }
-    // }
+        for (let command of characterPath.commands) {
+            if (characterFillStatus[textFillStatusCounter] === FillStatus.FILLED) {
+                p5.fill(textForegroundColour);
+            } else if (characterFillStatus[textFillStatusCounter] === FillStatus.OPEN) {
+                p5.fill(textBackgroundColour);
+            }
+
+            switch (command.type) {
+                case "M":
+                    p5.beginShape();
+                    p5.vertex(command.x, command.y);
+                    break;
+                case "L":
+                    p5.vertex(command.x, command.y);
+                    break;
+                case "C":
+                    p5.bezierVertex(command.x1, command.y1, command.x2, command.y2, command.x, command.y);
+                    break;
+                case "Q":
+                    p5.quadraticVertex(command.x1, command.y1, command.x, command.y);
+                    break;
+                case "Z":
+                    p5.endShape(p5.CLOSE);
+                    textFillStatusCounter++;
+                    break;
+            }
+        }
+    }
 }
 
 function generateSampleOffsetGrid(sideLength: number, sampleUnit: number): [x: number, y: number][] {
@@ -94,10 +111,7 @@ function getTextFillStatuses(p5: p5, textPaths: otf.Path[]): FillStatus[][] {
             continue; // will increment characterIndex
         }
 
-
         let letterformComponentShapes: otf.PathCommand[][] = extractShapesFromPath(entireLetterformPath);
-        // TODO this produces way toooo much arrays inside the array
-        console.log(letterformComponentShapes)
 
         for (let letterformComponentShape of letterformComponentShapes) {
             let samplePoint: Point | null = getFirstStartPointInPath(letterformComponentShape);
@@ -105,28 +119,6 @@ function getTextFillStatuses(p5: p5, textPaths: otf.Path[]): FillStatus[][] {
             if (samplePoint === null || samplePoint === undefined) {
                 console.error("render-font-otf.ts | samplePoint.x and samplePoint.y was null");
                 break;
-            }
-
-            // TODO REMOVE THIS actually rendering font
-            for (let command of letterformComponentShape) {
-                switch (command.type) {
-                    case "M":
-                        p5.beginShape();
-                        p5.vertex(command.x, command.y);
-                        break;
-                    case "L":
-                        p5.vertex(command.x, command.y);
-                        break;
-                    case "C":
-                        p5.bezierVertex(command.x1, command.y1, command.x2, command.y2, command.x, command.y);
-                        break;
-                    case "Q":
-                        p5.quadraticVertex(command.x1, command.y1, command.x, command.y);
-                        break;
-                    case "Z":
-                        p5.endShape(p5.CLOSE);
-                        break;
-                }
             }
 
             // now we need to sample around the (sampleX, sampleY) coordinate we have and test against
@@ -137,12 +129,6 @@ function getTextFillStatuses(p5: p5, textPaths: otf.Path[]): FillStatus[][] {
             for (let sampleOffset of sampleOffsetKernel) {
                 samplePointOffset.x = samplePoint.x + sampleOffset[0];
                 samplePointOffset.y = samplePoint.y + sampleOffset[1];
-
-                p5.push();
-                p5.stroke('pink');
-                p5.strokeWeight(4);
-                p5.point(samplePointOffset.x, samplePointOffset.y);
-                p5.pop();
 
                 // Searching to see if we're inside the current shape
                 // The p5.pixelDensity() part is CRUCIAL!
@@ -163,13 +149,6 @@ function getTextFillStatuses(p5: p5, textPaths: otf.Path[]): FillStatus[][] {
                 // stop searching if we've found a point within the path and not on the stroke as this won't
                 // show up in future isPointInPath calculations with the entire letterform
                 if (isInPath && !isInStroke) {
-                    console.log("!!!!!!!!!!!!!");
-                    p5.push();
-                    p5.stroke('red');
-                    p5.strokeWeight(5);
-                    p5.point(samplePointOffset.x, samplePointOffset.y);
-                    p5.pop();
-
                     wasFillStatusAssigned = true;
 
                     let characterShapePath2D: Path2D = new Path2D(entireLetterformPath.toPathData(toPathDataResolution));
@@ -195,8 +174,6 @@ function getTextFillStatuses(p5: p5, textPaths: otf.Path[]): FillStatus[][] {
                         textFillStatuses[characterIndex].push(FillStatus.OPEN);
                     }
 
-                    console.log("!!!!Render decided isInPath = " + isInPath);
-                    console.log("!!!!Render decided isInStroke = " + isInStroke);
                     break;
                 }
             }

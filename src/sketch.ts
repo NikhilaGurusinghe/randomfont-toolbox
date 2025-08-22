@@ -36,14 +36,14 @@ function sketch(p5: p5): void {
           text,
           fontSize
         );
-        P5FontRenderer.render(
-            p5,
-            libreBaskervilleRegP5,
-            text,
-            fontSize,
-            0.13,
-            P5FontRenderer.renderStrategyBeowulf
-        );
+        // P5FontRenderer.render(
+        //     p5,
+        //     libreBaskervilleRegP5,
+        //     text,
+        //     fontSize,
+        //     0.13,
+        //     P5FontRenderer.renderStrategyBeowulf
+        // );
     }
 
     // p5 font initialization
@@ -83,10 +83,12 @@ function sketch(p5: p5): void {
     p5.keyPressed = () : void => {
         let needsUpdate: boolean = false;
 
-        console.log("mouseX " + p5.mouseX + " | " + "mouseY " + p5.mouseY);
-
         if (p5.key.length === 1) {
-            text += p5.key;
+            switch (p5.key) {
+                default:
+                    text += p5.key;
+                    break;
+            }
             needsUpdate = true;
         } else if (p5.key === "Backspace") {
             text = text.slice(0, text.length - 1);

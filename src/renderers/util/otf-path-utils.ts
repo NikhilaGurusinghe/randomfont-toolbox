@@ -2,18 +2,20 @@ import otf from 'opentype.js';
 
 export function extractShapesFromPath(path: otf.Path) : otf.PathCommand[][] {
     let currShapeCounter: number = 0;
-    let currShapes: otf.PathCommand[][] = [];
-    for (let command of path.commands) {
+    let currShapes: otf.PathCommand[][] = [[]];
+    for (let i = 0; i < path.commands.length; i++){
+        let command = path.commands[i];
 
         if (command.type !== "Z") { // if we aren't at a close shape command
             currShapes[currShapeCounter].push(command)
         } else {
-            currShapes.push([]);
             // if we are at a close shape command
-            // push it
+            // push "Z"
             currShapes[currShapeCounter].push(command)
             // increment the currShapeCounter
             currShapeCounter++;
+            // if we aren't at the last "Z" then keep expanding the list
+            if (i !== path.commands.length - 1) currShapes.push([]);
         }
     }
 
@@ -24,7 +26,7 @@ export function getFirstStartPointInPath(pathCommands: otf.PathCommand[]) : (Poi
     for (let command of pathCommands) {
         if (command.type === "C" ||  // cubic bezier
             command.type === "L" ||  // line to
-            command.type === "Q" ) {  // quadratic bezier
+            command.type === "Q") {  // quadratic bezier
             return { x: command.x, y: command.y };
         }
     }
