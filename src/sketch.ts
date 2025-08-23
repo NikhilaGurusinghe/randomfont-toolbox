@@ -36,32 +36,26 @@ function sketch(p5: p5): void {
     function redrawFont(): void {
         p5.background(255);
 
-        if (textPaths === undefined) {
-            textPaths = OTFFontRenderer.getTextPaths(
+        if (textPaths === undefined || unprocessedTextPaths === undefined) {
+            let paths = OTFFontRenderer.getTextPaths(
                 p5,
                 libreBaskervilleRegOTF,
                 text,
                 typeSize,
                 OTFPathPreprocessor.freakTo,
-                { randomUnit: 10 }
+                { randomUnit: 4 }
             );
-        }
+            textPaths = paths.processedTextPath;
+            unprocessedTextPaths = paths.originalTextPath;
 
-        if (unprocessedTextPaths === undefined) {
-            unprocessedTextPaths = OTFFontRenderer.getTextPaths(
-                p5,
-                libreBaskervilleRegOTF,
-                text,
-                typeSize,
-                OTFPathPreprocessor.noPreprocess
-            );
+
         }
 
         OTFFontRenderer.renderFont(
             p5,
             textPaths,
             OTFFontRenderStrategy.freakToEroded,
-            { nudgeFactor: -7.2 },
+            { nudgeFactor: -7.4, unprocessedTextPaths: unprocessedTextPaths },
             unprocessedTextPaths
         );
         // P5FontRenderer.render(

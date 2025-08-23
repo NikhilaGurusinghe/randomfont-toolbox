@@ -61,7 +61,6 @@ export function freakTo(p5: p5, textPaths: otf.Path[], options?: { [key: string]
                             y: lerpedY + p5.random(-randomUnit/1.5, randomUnit/1.5)
                         } as otf.PathCommand);
                     }
-                    console.log("  ")
 
                     newCharacterPathCommands.push({
                         type: "L",

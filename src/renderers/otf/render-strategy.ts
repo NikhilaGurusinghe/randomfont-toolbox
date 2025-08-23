@@ -119,24 +119,21 @@ export function freakToEroded(p5: p5,
 
     // nudge factor of 7-8.3 is ideal for a letterform that is almost non-existent
     let nudgeFactor: number; //-7.6;//-8.3;
-    //let unprocessedTextPaths: otf.Path[];
+    let unprocessedTextPaths: otf.Path[];
 
-    if (options === undefined || !("nudgeFactor" in options) /*|| !("unprocessedTextPaths" in options)*/) {
+    if (options === undefined || !("nudgeFactor" in options) || !("unprocessedTextPaths" in options)) {
         console.error("render-strategy.ts | freakToEroded received malformed options parameter.");
         return;
     } else {
         nudgeFactor = options["nudgeFactor"];
-        //unprocessedTextPaths = options["unprocessedTextPaths"];
+        unprocessedTextPaths = options["unprocessedTextPaths"];
     }
-
-
-
 
     p5.push();
     p5.noStroke();
     for (let characterIndex = 0; characterIndex < textPaths.length; characterIndex++){
         const characterPath: otf.Path = textPaths[characterIndex];
-        //const unprocessedCharacterPath: otf.Path = unprocessedTextPaths[characterIndex];
+        const unprocessedCharacterPath: otf.Path = unprocessedTextPaths[characterIndex];
         const characterFillStatus: FillStatus[] = textFillStatuses[characterIndex];
         let textFillStatusCounter: number = 0;
 
@@ -150,7 +147,8 @@ export function freakToEroded(p5: p5,
 
         for (let i = 0; i < characterPath.commands.length; i++){
             let command: otf.PathCommand = characterPath.commands[i];
-            //let unprocessedCommand: otf.PathCommand = unprocessedCharacterPath.commands[i];
+            let unprocessedCommand: otf.PathCommand = unprocessedCharacterPath.commands[i];
+            console.log(unprocessedCommand)
 
             let dx: number;
             let dy: number;
@@ -158,70 +156,79 @@ export function freakToEroded(p5: p5,
             let offsetX: number;
             let offsetY: number;
 
-            switch (command.type) {
-                case "M":
-                    p5.beginShape();
-                    dx = command.y - previousPoint.y;
-                    dy = previousPoint.x - command.x;
-                    magnitude = Math.sqrt(dx**2 + dy**2);
-                    offsetX = (dx / magnitude) * nudgeFactor;
-                    offsetY = (dy / magnitude) * nudgeFactor;
-                    p5.vertex(
-                        command.x + offsetX,
-                        command.y + offsetY
-                    );
-                    break;
-                case "L":
-                    dx = command.y - previousPoint.y;
-                    dy = previousPoint.x - command.x;
-                    magnitude = Math.sqrt(dx**2 + dy**2);
-                    offsetX = (dx / magnitude) * nudgeFactor;
-                    offsetY = (dy / magnitude) * nudgeFactor;
-                    p5.vertex(
-                        command.x + offsetX,
-                        command.y + offsetY
-                    );
-                    break;
-                case "C":
-                    console.error("render-strategy.ts | a cubic bezier was drawn! This is really bad.")
-                    // TODO i haven't seen a single curve invoke this, so I've just ignored this
-                    p5.bezierVertex(
-                        command.x1,
-                        command.y1,
-                        command.x2,
-                        command.y2,
-                        command.x,
-                        command.y
-                    );
-                    break;
-                case "Q":
-                    dx = command.y - command.y1;
-                    dy = command.x1 - command.x;
-                    magnitude = Math.sqrt(dx**2 + dy**2);
-                    offsetX = (dx / magnitude) * nudgeFactor;
-                    offsetY = (dy / magnitude) * nudgeFactor;
-                    p5.quadraticVertex(
-                        command.x1 + offsetX,
-                        command.y1 + offsetY,
-                        command.x  + offsetX,
-                        command.y  + offsetY
-                    );
-                    break;
-                case "Z":
-                    p5.endShape(p5.CLOSE);
-
-                    textFillStatusCounter++;
-                    if (characterFillStatus[textFillStatusCounter] === FillStatus.FILLED) {
-                        p5.fill(textForegroundColour);
-                    } else if (characterFillStatus[textFillStatusCounter] === FillStatus.OPEN) {
-                        p5.fill(textBackgroundColour);
-                    }
-                    break;
+            if (command.type !== unprocessedCommand.type) {
+                console.error("render-strategy.ts | something has gone wrong in otf\render-font.ts#getTextPaths" +
+                    " regarding the lengths of the outputted otf.Path[]");
             }
 
-            if (command.type !== "Z") {
-                previousPoint.x = command.x;
-                previousPoint.y = command.y;
+            if (command.type === "M" && unprocessedCommand.type === "M") {
+                p5.beginShape();
+                dx = unprocessedCommand.y - previousPoint.y;
+                dy = previousPoint.x - unprocessedCommand.x;
+                magnitude = Math.sqrt(dx ** 2 + dy ** 2);
+                offsetX = (dx / magnitude) * nudgeFactor;
+                offsetY = (dy / magnitude) * nudgeFactor;
+                p5.vertex(
+                    command.x + offsetX,
+                    command.y + offsetY
+                );
+
+                previousPoint.x = unprocessedCommand.x;
+                previousPoint.y = unprocessedCommand.y;
+            } else if (command.type === "L" && unprocessedCommand.type === "L") {
+                dx = unprocessedCommand.y - previousPoint.y;
+                dy = previousPoint.x - unprocessedCommand.x;
+                magnitude = Math.sqrt(dx ** 2 + dy ** 2);
+                offsetX = (dx / magnitude) * nudgeFactor/1.5;
+                offsetY = (dy / magnitude) * nudgeFactor/1.5;
+
+                // TODO this makes font outlines spiky and not thin which is bad
+                p5.vertex(
+                    command.x + offsetX,
+                    command.y + offsetY
+                );
+
+                // Update previous point consistently
+                previousPoint.x = unprocessedCommand.x;
+                previousPoint.y = unprocessedCommand.y;
+            } else if (command.type === "C" && unprocessedCommand.type === "C") {
+                console.error("render-strategy.ts | a cubic bezier was drawn! This is really bad.")
+                // TODO i haven't seen a single curve invoke this, so I've just ignored this
+                p5.bezierVertex(
+                    command.x1,
+                    command.y1,
+                    command.x2,
+                    command.y2,
+                    command.x,
+                    command.y
+                );
+
+                previousPoint.x = unprocessedCommand.x;
+                previousPoint.y = unprocessedCommand.y;
+            } else if (command.type === "Q" && unprocessedCommand.type === "Q") {
+                dx = unprocessedCommand.y - unprocessedCommand.y1;
+                dy = unprocessedCommand.x1 - unprocessedCommand.x;
+                magnitude = Math.sqrt(dx ** 2 + dy ** 2);
+                offsetX = (dx / magnitude) * nudgeFactor;
+                offsetY = (dy / magnitude) * nudgeFactor;
+                p5.quadraticVertex(
+                    command.x1 + offsetX,
+                    command.y1 + offsetY,
+                    command.x + offsetX,
+                    command.y + offsetY
+                );
+
+                previousPoint.x = unprocessedCommand.x;
+                previousPoint.y = unprocessedCommand.y;
+            } else if (command.type === "Z" && unprocessedCommand.type === "Z") {
+                p5.endShape(p5.CLOSE);
+
+                textFillStatusCounter++;
+                if (characterFillStatus[textFillStatusCounter] === FillStatus.FILLED) {
+                    p5.fill(textForegroundColour);
+                } else if (characterFillStatus[textFillStatusCounter] === FillStatus.OPEN) {
+                    p5.fill(textBackgroundColour);
+                }
             }
         }
     }

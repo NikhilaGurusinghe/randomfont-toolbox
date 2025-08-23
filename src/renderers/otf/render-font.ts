@@ -21,10 +21,9 @@ export function getTextPaths(p5: p5,
                              font: otf.Font,
                              text: string,
                              typeSize: number,
-                             // @ts-ignore
                              fontPreprocessor: FontPreprocessor,
-                             // @ts-ignore
-                             fontPreprocessorOptions?: { [key: string]: number }): otf.Path[] {
+                             fontPreprocessorOptions?: { [key: string]: number }):
+    { originalTextPath: otf.Path[], processedTextPath: otf.Path[] } {
     const textPath: otf.Path = font.getPath(text, 0, 0, typeSize, { kerning: true });
     const textBoundingBox: otf.BoundingBox = textPath.getBoundingBox();
     const textHeight: number = textBoundingBox.y2 - textBoundingBox.y1;
@@ -38,16 +37,19 @@ export function getTextPaths(p5: p5,
         { kerning: true }
     );
 
-    // @ts-ignore
-    //let temp = fontPreprocessor(p5, textPaths, fontPreprocessorOptions);
+    let processedTextPaths: otf.Path[] = fontPreprocessor(p5, textPaths, fontPreprocessorOptions);
 
-    return textPaths;
+    if (textPaths.length !== processedTextPaths.length)
+        console.error("render-font.ts | something has gone wrong in otf\render-font.ts#getTextPaths" +
+            " regarding the lengths of the outputted otf.Path[]");
+
+    return { originalTextPath: textPaths, processedTextPath: processedTextPaths };
 }
 
 export function renderFont(p5: p5,
                            textPaths: otf.Path[],
                            fontRenderer: FontRenderStrategy,
-                           fontRendererOptions?: { [key: string]: number },
+                           fontRendererOptions?: { [key: string]: any },
                            unprocessedTextPaths?: otf.Path[]) : otf.Path[] {
 
     // sorting out rendering holes in fonts
