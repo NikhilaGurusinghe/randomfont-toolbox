@@ -112,26 +112,31 @@ export function freakToOriginal(p5: p5, textPaths: otf.Path[], textFillStatuses:
 }
 
 // options looks like
-// { nudgeFactor: <number>, randomNumbers: [<list of 18 random numbers>] }
 export function freakToEroded(p5: p5,
                               textPaths: otf.Path[],
                               textFillStatuses: FillStatus[][],
-                              options?: { [key: string]: number }) {
+                              options?: { [key: string]: any }) {
 
     // nudge factor of 7-8.3 is ideal for a letterform that is almost non-existent
     let nudgeFactor: number; //-7.6;//-8.3;
+    //let unprocessedTextPaths: otf.Path[];
 
-    if (options === null || options === undefined || !("nudgeFactor" in options)) {
+    if (options === undefined || !("nudgeFactor" in options) /*|| !("unprocessedTextPaths" in options)*/) {
         console.error("render-strategy.ts | freakToEroded received malformed options parameter.");
-        nudgeFactor = -7;
+        return;
     } else {
         nudgeFactor = options["nudgeFactor"];
+        //unprocessedTextPaths = options["unprocessedTextPaths"];
     }
+
+
+
 
     p5.push();
     p5.noStroke();
     for (let characterIndex = 0; characterIndex < textPaths.length; characterIndex++){
         const characterPath: otf.Path = textPaths[characterIndex];
+        //const unprocessedCharacterPath: otf.Path = unprocessedTextPaths[characterIndex];
         const characterFillStatus: FillStatus[] = textFillStatuses[characterIndex];
         let textFillStatusCounter: number = 0;
 
@@ -143,7 +148,10 @@ export function freakToEroded(p5: p5,
 
         let previousPoint: Point = { x: 0, y: 0 };
 
-        for (let command of characterPath.commands) {
+        for (let i = 0; i < characterPath.commands.length; i++){
+            let command: otf.PathCommand = characterPath.commands[i];
+            //let unprocessedCommand: otf.PathCommand = unprocessedCharacterPath.commands[i];
+
             let dx: number;
             let dy: number;
             let magnitude: number;
@@ -153,7 +161,6 @@ export function freakToEroded(p5: p5,
             switch (command.type) {
                 case "M":
                     p5.beginShape();
-
                     dx = command.y - previousPoint.y;
                     dy = previousPoint.x - command.x;
                     magnitude = Math.sqrt(dx**2 + dy**2);
@@ -163,9 +170,6 @@ export function freakToEroded(p5: p5,
                         command.x + offsetX,
                         command.y + offsetY
                     );
-
-                    previousPoint.x = command.x;
-                    previousPoint.y = command.y;
                     break;
                 case "L":
                     dx = command.y - previousPoint.y;
@@ -177,9 +181,6 @@ export function freakToEroded(p5: p5,
                         command.x + offsetX,
                         command.y + offsetY
                     );
-
-                    previousPoint.x = command.x;
-                    previousPoint.y = command.y;
                     break;
                 case "C":
                     console.error("render-strategy.ts | a cubic bezier was drawn! This is really bad.")
@@ -192,9 +193,6 @@ export function freakToEroded(p5: p5,
                         command.x,
                         command.y
                     );
-
-                    previousPoint.x = command.x;
-                    previousPoint.y = command.y;
                     break;
                 case "Q":
                     dx = command.y - command.y1;
@@ -208,9 +206,6 @@ export function freakToEroded(p5: p5,
                         command.x  + offsetX,
                         command.y  + offsetY
                     );
-
-                    previousPoint.x = command.x;
-                    previousPoint.y = command.y;
                     break;
                 case "Z":
                     p5.endShape(p5.CLOSE);
@@ -222,6 +217,11 @@ export function freakToEroded(p5: p5,
                         p5.fill(textBackgroundColour);
                     }
                     break;
+            }
+
+            if (command.type !== "Z") {
+                previousPoint.x = command.x;
+                previousPoint.y = command.y;
             }
         }
     }

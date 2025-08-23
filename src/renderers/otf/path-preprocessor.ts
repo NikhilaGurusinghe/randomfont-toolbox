@@ -15,6 +15,8 @@ export function freakTo(p5: p5, textPaths: otf.Path[], options?: { [key: string]
         randomUnit = options["randomUnit"];
     }
 
+    let processedTextPaths: otf.Path[] = JSON.parse(JSON.stringify(textPaths));
+
     for (let characterIndex = 0; characterIndex < textPaths.length; characterIndex++){
         // get otf.Path object for current character
         const characterPath: otf.Path = textPaths[characterIndex];
@@ -24,12 +26,8 @@ export function freakTo(p5: p5, textPaths: otf.Path[], options?: { [key: string]
         let previousPoint: Point = { x: 0, y: 0 };
 
         // process all path commands for this current character
-        for (let command of characterPath.commands) {
-            if (command.type !== "Z") {
-                previousPoint.x = command.x;
-                previousPoint.y = command.y;
-            }
-
+        for (let charPathCommandIndex = 0; charPathCommandIndex < characterPath.commands.length; charPathCommandIndex++){
+            let command = characterPath.commands[charPathCommandIndex];
             switch (command.type) {
                 case "M":
                     newCharacterPathCommands.push({
@@ -48,18 +46,33 @@ export function freakTo(p5: p5, textPaths: otf.Path[], options?: { [key: string]
                         let lerpedX: number = p5.lerp(previousPoint.x, command.x, lerpInterval);
                         let lerpedY: number = p5.lerp(previousPoint.y, command.y, lerpInterval);
 
+                        // so we need to update the original textPaths as we are adding commands that need to
+                        // be reflected in the original textPaths (cause we might need to use the original
+                        // textPaths outside of here) -- this works fine cause arrays are passed by ref
+                        textPaths[characterIndex].commands.splice(charPathCommandIndex, 0, {
+                            type: "L",
+                            x: lerpedX,
+                            y: lerpedY
+                        } as otf.PathCommand);
+
                         newCharacterPathCommands.push({
                             type: "L",
                             x: lerpedX + p5.random(-randomUnit/1.5, randomUnit/1.5),
                             y: lerpedY + p5.random(-randomUnit/1.5, randomUnit/1.5)
                         } as otf.PathCommand);
                     }
+                    console.log("  ")
 
                     newCharacterPathCommands.push({
                         type: "L",
                         x: command.x + p5.random(-randomUnit, randomUnit),
                         y: command.y + p5.random(-randomUnit, randomUnit)
                     } as otf.PathCommand);
+
+                    // as we have updated the textPaths by reference we need to adjust the charPathCommandIndex
+                    // to be after the original "L" command
+                    charPathCommandIndex += lerpIntervals.length;
+
                     break;
                 case "C":
                     newCharacterPathCommands.push({
@@ -87,12 +100,18 @@ export function freakTo(p5: p5, textPaths: otf.Path[], options?: { [key: string]
                     } as otf.PathCommand);
                     break;
             }
+
+            if (command.type !== "Z") {
+                previousPoint.x = command.x;
+                previousPoint.y = command.y;
+            }
+
         }
 
         // after processing paths and adding some randomization let's assign all the
         // new path commands to the original otf.Path[] object parameter
-        textPaths[characterIndex].commands = newCharacterPathCommands;
+        processedTextPaths[characterIndex].commands = newCharacterPathCommands;
     }
 
-    return textPaths;
+    return processedTextPaths;
 }

@@ -21,7 +21,9 @@ export function getTextPaths(p5: p5,
                              font: otf.Font,
                              text: string,
                              typeSize: number,
+                             // @ts-ignore
                              fontPreprocessor: FontPreprocessor,
+                             // @ts-ignore
                              fontPreprocessorOptions?: { [key: string]: number }): otf.Path[] {
     const textPath: otf.Path = font.getPath(text, 0, 0, typeSize, { kerning: true });
     const textBoundingBox: otf.BoundingBox = textPath.getBoundingBox();
@@ -36,7 +38,10 @@ export function getTextPaths(p5: p5,
         { kerning: true }
     );
 
-    return fontPreprocessor(p5, textPaths, fontPreprocessorOptions);
+    // @ts-ignore
+    //let temp = fontPreprocessor(p5, textPaths, fontPreprocessorOptions);
+
+    return textPaths;
 }
 
 export function renderFont(p5: p5,
@@ -45,7 +50,6 @@ export function renderFont(p5: p5,
                            fontRendererOptions?: { [key: string]: number },
                            unprocessedTextPaths?: otf.Path[]) : otf.Path[] {
 
-    console.log(unprocessedTextPaths !== undefined)
     // sorting out rendering holes in fonts
     // unprocessedTextPaths can be used here if the processing you do on your text is so extreme that it destroys
     // my very fickle algorithm for determining the number and order of holes in a letterform :)
