@@ -3,8 +3,11 @@ import otf from 'opentype.js';
 import {pathCounterCounter} from "./util/type-counters";
 import {extractShapesFromPath, getFirstStartPointInPath, pathCommandsToPathData} from "./util/otf-path-utils";
 
-// @ts-ignore
-type FontRenderStrategy = (p5: p5, textPaths: otf.Path[], textFillStatuses: FillStatus[][]) => void;
+type FontRenderStrategy = (p5: p5,
+                           textPaths: otf.Path[],
+                           textFillStatuses: FillStatus[][],
+                           options?: { [key: string]: number }) => void;
+type FontPreprocessor = (p5: p5, textPaths: otf.Path[], options?: { [key: string]: number }) => otf.Path[];
 
 export enum FillStatus {
     FILLED = "filled",
@@ -14,30 +17,45 @@ export enum FillStatus {
 export const textForegroundColour = 0;
 export const textBackgroundColour = 255;
 
-export function renderFont(p5: p5,
-                           font: otf.Font,
-                           text: string,
-                           fontSize: number,
-                           fontRenderer: FontRenderStrategy) : void {
-
-    const textPath: otf.Path = font.getPath(text, 0, 0, fontSize, { kerning: true });
+export function getTextPaths(p5: p5,
+                             font: otf.Font,
+                             text: string,
+                             typeSize: number,
+                             fontPreprocessor: FontPreprocessor,
+                             fontPreprocessorOptions?: { [key: string]: number }): otf.Path[] {
+    const textPath: otf.Path = font.getPath(text, 0, 0, typeSize, { kerning: true });
     const textBoundingBox: otf.BoundingBox = textPath.getBoundingBox();
     const textHeight: number = textBoundingBox.y2 - textBoundingBox.y1;
     const textWidth: number = textBoundingBox.x2 - textBoundingBox.x1;
 
-    const textPaths: otf.Path[] = font.getPaths(
+    let textPaths: otf.Path[] = font.getPaths(
         text,
         (p5.windowWidth - textWidth) / 2,
-        (p5.windowHeight - textHeight + fontSize) / 2,
-        fontSize,
+        (p5.windowHeight - textHeight + typeSize) / 2,
+        typeSize,
         { kerning: true }
     );
 
-    // pre-processing fonts
-    const textFillStatuses: FillStatus[][] = getTextFillStatuses(p5, textPaths);
+    return fontPreprocessor(p5, textPaths, fontPreprocessorOptions);
+}
+
+export function renderFont(p5: p5,
+                           textPaths: otf.Path[],
+                           fontRenderer: FontRenderStrategy,
+                           fontRendererOptions?: { [key: string]: number },
+                           unprocessedTextPaths?: otf.Path[]) : otf.Path[] {
+
+    console.log(unprocessedTextPaths !== undefined)
+    // sorting out rendering holes in fonts
+    // unprocessedTextPaths can be used here if the processing you do on your text is so extreme that it destroys
+    // my very fickle algorithm for determining the number and order of holes in a letterform :)
+    const textFillStatuses: FillStatus[][] =
+        unprocessedTextPaths === undefined ? getTextFillStatuses(p5, textPaths) : getTextFillStatuses(p5, unprocessedTextPaths);
 
     // actually rendering font
-    fontRenderer(p5, textPaths, textFillStatuses);
+    fontRenderer(p5, textPaths, textFillStatuses, fontRendererOptions);
+
+    return textPaths;
 }
 
 function generateSampleOffsetGrid(sideLength: number, sampleUnit: number): [x: number, y: number][] {

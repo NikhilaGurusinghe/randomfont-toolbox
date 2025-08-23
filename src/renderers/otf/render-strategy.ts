@@ -3,6 +3,7 @@ import otf from 'opentype.js';
 import { FillStatus, textBackgroundColour, textForegroundColour } from "./render-font";
 
 export function filled(p5: p5, textPaths: otf.Path[], textFillStatuses: FillStatus[][]) {
+
     p5.push();
     p5.noStroke();
     for (let characterIndex = 0; characterIndex < textPaths.length; characterIndex++){
@@ -83,16 +84,16 @@ export function freakToOriginal(p5: p5, textPaths: otf.Path[], textFillStatuses:
                         command.y1 + p5.random(-randomUnit, randomUnit),
                         command.x2 + p5.random(-randomUnit, randomUnit),
                         command.y2 + p5.random(-randomUnit, randomUnit),
-                        command.x + p5.random(-randomUnit, randomUnit),
-                        command.y + p5.random(-randomUnit, randomUnit)
+                        command.x  + p5.random(-randomUnit, randomUnit),
+                        command.y  + p5.random(-randomUnit, randomUnit)
                     );
                     break;
                 case "Q":
                     p5.quadraticVertex(
                         command.x1 + p5.random(-randomUnit, randomUnit),
                         command.y1 + p5.random(-randomUnit, randomUnit),
-                        command.x + p5.random(-randomUnit, randomUnit),
-                        command.y + p5.random(-randomUnit, randomUnit)
+                        command.x  + p5.random(-randomUnit, randomUnit),
+                        command.y  + p5.random(-randomUnit, randomUnit)
                     );
                     break;
                 case "Z":
@@ -110,8 +111,22 @@ export function freakToOriginal(p5: p5, textPaths: otf.Path[], textFillStatuses:
     p5.pop();
 }
 
-export function freakTo(p5: p5, textPaths: otf.Path[], textFillStatuses: FillStatus[][]) {
-    const randomUnit = 4;
+// options looks like
+// { nudgeFactor: <number>, randomNumbers: [<list of 18 random numbers>] }
+export function freakToEroded(p5: p5,
+                              textPaths: otf.Path[],
+                              textFillStatuses: FillStatus[][],
+                              options?: { [key: string]: number }) {
+
+    // nudge factor of 7-8.3 is ideal for a letterform that is almost non-existent
+    let nudgeFactor: number; //-7.6;//-8.3;
+
+    if (options === null || options === undefined || !("nudgeFactor" in options)) {
+        console.error("render-strategy.ts | freakToEroded received malformed options parameter.");
+        nudgeFactor = -7;
+    } else {
+        nudgeFactor = options["nudgeFactor"];
+    }
 
     p5.push();
     p5.noStroke();
@@ -129,60 +144,77 @@ export function freakTo(p5: p5, textPaths: otf.Path[], textFillStatuses: FillSta
         let previousPoint: Point = { x: 0, y: 0 };
 
         for (let command of characterPath.commands) {
+            let dx: number;
+            let dy: number;
+            let magnitude: number;
+            let offsetX: number;
+            let offsetY: number;
+
             switch (command.type) {
                 case "M":
                     p5.beginShape();
+
+                    dx = command.y - previousPoint.y;
+                    dy = previousPoint.x - command.x;
+                    magnitude = Math.sqrt(dx**2 + dy**2);
+                    offsetX = (dx / magnitude) * nudgeFactor;
+                    offsetY = (dy / magnitude) * nudgeFactor;
                     p5.vertex(
-                        command.x + p5.random(-randomUnit, randomUnit),
-                        command.y + p5.random(-randomUnit, randomUnit)
+                        command.x + offsetX,
+                        command.y + offsetY
                     );
+
                     previousPoint.x = command.x;
                     previousPoint.y = command.y;
                     break;
                 case "L":
-                    let lerpIntervals: number[] = [];
-                    for (let i = 0; i < p5.random(0, randomUnit-1); i++) {
-                        lerpIntervals.push(p5.random(0, 0.9));
-                    }
-                    lerpIntervals.sort((a: number, b: number) => a - b); // sort in ascending order
-                    for (let lerpInterval of lerpIntervals) {
-                        p5.vertex(
-                            p5.lerp(previousPoint.x, command.x, lerpInterval) + p5.random(-randomUnit/1.5, randomUnit/1.5),
-                            p5.lerp(previousPoint.y, command.y, lerpInterval) + p5.random(-randomUnit/1.5, randomUnit/1.5),
-                        );
-                    }
-
+                    dx = command.y - previousPoint.y;
+                    dy = previousPoint.x - command.x;
+                    magnitude = Math.sqrt(dx**2 + dy**2);
+                    offsetX = (dx / magnitude) * nudgeFactor;
+                    offsetY = (dy / magnitude) * nudgeFactor;
                     p5.vertex(
-                        command.x + p5.random(-randomUnit, randomUnit),
-                        command.y + p5.random(-randomUnit, randomUnit)
+                        command.x + offsetX,
+                        command.y + offsetY
                     );
+
                     previousPoint.x = command.x;
                     previousPoint.y = command.y;
                     break;
                 case "C":
+                    console.error("render-strategy.ts | a cubic bezier was drawn! This is really bad.")
+                    // TODO i haven't seen a single curve invoke this, so I've just ignored this
                     p5.bezierVertex(
-                        command.x1 + p5.random(-randomUnit, randomUnit),
-                        command.y1 + p5.random(-randomUnit, randomUnit),
-                        command.x2 + p5.random(-randomUnit, randomUnit),
-                        command.y2 + p5.random(-randomUnit, randomUnit),
-                        command.x  + p5.random(-randomUnit, randomUnit),
-                        command.y  + p5.random(-randomUnit, randomUnit)
+                        command.x1,
+                        command.y1,
+                        command.x2,
+                        command.y2,
+                        command.x,
+                        command.y
                     );
+
                     previousPoint.x = command.x;
                     previousPoint.y = command.y;
                     break;
                 case "Q":
+                    dx = command.y - command.y1;
+                    dy = command.x1 - command.x;
+                    magnitude = Math.sqrt(dx**2 + dy**2);
+                    offsetX = (dx / magnitude) * nudgeFactor;
+                    offsetY = (dy / magnitude) * nudgeFactor;
                     p5.quadraticVertex(
-                        command.x1 + p5.random(-randomUnit, randomUnit),
-                        command.y1 + p5.random(-randomUnit, randomUnit),
-                        command.x  + p5.random(-randomUnit, randomUnit),
-                        command.y  + p5.random(-randomUnit, randomUnit)
+                        command.x1 + offsetX,
+                        command.y1 + offsetY,
+                        command.x  + offsetX,
+                        command.y  + offsetY
                     );
+
                     previousPoint.x = command.x;
                     previousPoint.y = command.y;
                     break;
                 case "Z":
                     p5.endShape(p5.CLOSE);
+
                     textFillStatusCounter++;
                     if (characterFillStatus[textFillStatusCounter] === FillStatus.FILLED) {
                         p5.fill(textForegroundColour);

@@ -12,6 +12,7 @@ import * as P5FontRenderer from './renderers/p5/render-font';
 // @ts-ignore
 import * as OTFFontRenderer from './renderers/otf/render-font';
 import * as OTFFontRenderStrategy from './renderers/otf/render-strategy';
+import * as OTFPathPreprocessor from './renderers/otf/path-preprocessor';
 
 function sketch(p5: p5): void {
 
@@ -24,29 +25,56 @@ function sketch(p5: p5): void {
     // @ts-ignore
     let libreBaskervilleBoldP5 : p5.Font;
 
-    let text: string = "Archaeopteryx";
+    let text: string = "ephemerality";
         // "Archaeopteryx, is a\n" +
         // "genus of bird-like\n" +
         // "dinosaurs.";
-    let fontSize: number = 148;
+    let typeSize: number = 148;
+    let textPaths: otf.Path[];
+    let unprocessedTextPaths: otf.Path[];
+
     function redrawFont(): void {
         p5.background(255);
+
+        if (textPaths === null || textPaths === undefined) {
+            textPaths = OTFFontRenderer.getTextPaths(
+                p5,
+                libreBaskervilleRegOTF,
+                text,
+                typeSize,
+                OTFPathPreprocessor.freakTo,
+                { randomUnit: 5 }
+            );
+        }
+
+        if (unprocessedTextPaths === null || unprocessedTextPaths === undefined) {
+            unprocessedTextPaths = OTFFontRenderer.getTextPaths(
+                p5,
+                libreBaskervilleRegOTF,
+                text,
+                typeSize,
+                OTFPathPreprocessor.noPreprocess
+            );
+        }
+
         OTFFontRenderer.renderFont(
             p5,
-            libreBaskervilleRegOTF,
-            text,
-            fontSize,
-            OTFFontRenderStrategy.freakTo
+            textPaths,
+            OTFFontRenderStrategy.freakToEroded,
+            { nudgeFactor: 0 },
+            unprocessedTextPaths
         );
         // P5FontRenderer.render(
         //     p5,
         //     libreBaskervilleRegP5,
         //     text,
-        //     fontSize,
+        //     typeSize,
         //     0.13,
         //     P5FontRenderer.renderStrategyBeowulf
         // );
     }
+
+    // TODO request + cache to get real random numbers http://qrng.anu.edu.au/API/jsonI.php?length=100&type=hex16&size=6
 
     // p5 font initialization
     p5.preload = (): void => {
@@ -56,6 +84,10 @@ function sketch(p5: p5): void {
     }
 
     p5.setup = (): void => {
+        window.addEventListener("afterprint", () => {
+            console.log("Printing has completed.");
+        });
+
         p5.createCanvas(p5.windowWidth, p5.windowHeight);
 
         // opentype.js font initialization
