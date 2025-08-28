@@ -8,11 +8,11 @@ export function noPreprocess(_p5: p5, textPaths: otf.Path[]): otf.Path[] {
 export function freakTo(p5: p5, textPaths: otf.Path[], options?: { [key: string]: number }): otf.Path[] {
     let randomUnit: number;
 
-    if (options === null || options === undefined || !("randomUnit" in options)) {
+    if (options === null || options === undefined || !("craziness" in options)) {
         console.error("path-preprocessor.ts | freakTo received malformed options parameter.");
         randomUnit = 3;
     } else {
-        randomUnit = options["randomUnit"];
+        randomUnit = options["craziness"];
     }
 
     let processedTextPaths: otf.Path[] = JSON.parse(JSON.stringify(textPaths));

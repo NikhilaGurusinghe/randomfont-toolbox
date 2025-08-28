@@ -6,8 +6,8 @@ import {extractShapesFromPath, getFirstStartPointInPath, pathCommandsToPathData}
 type FontRenderStrategy = (p5: p5,
                            textPaths: otf.Path[],
                            textFillStatuses: FillStatus[][],
-                           options?: { [key: string]: number }) => void;
-type FontPreprocessor = (p5: p5, textPaths: otf.Path[], options?: { [key: string]: number }) => otf.Path[];
+                           options?: { [key: string]: any }) => void;
+type FontPreprocessor = (p5: p5, textPaths: otf.Path[], options?: { [key: string]: any }) => otf.Path[];
 
 export enum FillStatus {
     FILLED = "filled",
@@ -22,7 +22,7 @@ export function getTextPaths(p5: p5,
                              text: string,
                              typeSize: number,
                              fontPreprocessor: FontPreprocessor,
-                             fontPreprocessorOptions?: { [key: string]: number }):
+                             fontPreprocessorOptions?: { [key: string]: any }):
     { originalTextPath: otf.Path[], processedTextPath: otf.Path[] } {
     const textPath: otf.Path = font.getPath(text, 0, 0, typeSize, { kerning: true });
     const textBoundingBox: otf.BoundingBox = textPath.getBoundingBox();
@@ -55,8 +55,14 @@ export function renderFont(p5: p5,
     // sorting out rendering holes in fonts
     // unprocessedTextPaths can be used here if the processing you do on your text is so extreme that it destroys
     // my very fickle algorithm for determining the number and order of holes in a letterform :)
-    const textFillStatuses: FillStatus[][] =
-        unprocessedTextPaths === undefined ? getTextFillStatuses(p5, textPaths) : getTextFillStatuses(p5, unprocessedTextPaths);
+    const textFillStatuses: FillStatus[][] = unprocessedTextPaths === undefined ?
+        getTextFillStatuses(p5, textPaths) : getTextFillStatuses(p5, unprocessedTextPaths);
+
+    // unprocessedTextPaths tend to be useful in FontRenderStrategy as they preserve the original geometry
+    // and curves of the font before they are processed crazily
+    if (fontRendererOptions !== undefined && unprocessedTextPaths !== undefined) {
+        fontRendererOptions["unprocessedTextPaths"] = unprocessedTextPaths;
+    }
 
     // actually rendering font
     fontRenderer(p5, textPaths, textFillStatuses, fontRendererOptions);

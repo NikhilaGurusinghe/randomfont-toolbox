@@ -25,39 +25,43 @@ function sketch(p5: p5): void {
     // @ts-ignore
     let libreBaskervilleBoldP5 : p5.Font;
 
-    let text: string = "ephemerality";
-        // "Archaeopteryx, is a\n" +
-        // "genus of bird-like\n" +
-        // "dinosaurs.";
+    let text: string = "MY Beowolf";
     let typeSize: number = 148;
     let textPaths: otf.Path[];
     let unprocessedTextPaths: otf.Path[];
 
-    function redrawFont(): void {
+    let erosionStrengthSlider: p5.Element;
+    let erosionStrengthValueText: p5.Element;
+    let freakToCrazinessStrengthSlider: p5.Element;
+    let freakToCrazinessValueText: p5.Element;
+
+    function redrawFont(immediatelyRedraw: boolean = true): void {
         p5.background(255);
 
-        if (textPaths === undefined || unprocessedTextPaths === undefined) {
+        if (immediatelyRedraw ||
+            textPaths === undefined ||
+            unprocessedTextPaths === undefined ||
+            textPaths.length !== text.length) { // this condition is for when the text is updated (for debugging)
             let paths = OTFFontRenderer.getTextPaths(
                 p5,
                 libreBaskervilleRegOTF,
                 text,
                 typeSize,
                 OTFPathPreprocessor.freakTo,
-                { randomUnit: 4 }
+                { craziness: freakToCrazinessStrengthSlider.value() }
             );
             textPaths = paths.processedTextPath;
             unprocessedTextPaths = paths.originalTextPath;
-
-
         }
 
         OTFFontRenderer.renderFont(
             p5,
             textPaths,
             OTFFontRenderStrategy.freakToEroded,
-            { nudgeFactor: -7.4, unprocessedTextPaths: unprocessedTextPaths },
+            { erosionStrength: -erosionStrengthSlider.value() },
             unprocessedTextPaths
         );
+
         // P5FontRenderer.render(
         //     p5,
         //     libreBaskervilleRegP5,
@@ -68,8 +72,6 @@ function sketch(p5: p5): void {
         // );
     }
 
-    // TODO request + cache to get real random numbers http://qrng.anu.edu.au/API/jsonI.php?length=100&type=hex16&size=6
-
     // p5 font initialization
     p5.preload = (): void => {
         libreBaskervilleRegP5 = p5.loadFont(libreBaskervilleRegPath);
@@ -79,7 +81,9 @@ function sketch(p5: p5): void {
 
     p5.setup = (): void => {
         window.addEventListener("afterprint", () => {
-            console.log("Printing has completed.");
+            redrawFont(false);
+            erosionStrengthSlider.value(parseFloat(String(erosionStrengthSlider.value())) + 2);
+            erosionStrengthValueText.html(String(erosionStrengthSlider.value()));
         });
 
         p5.createCanvas(p5.windowWidth, p5.windowHeight);
@@ -99,13 +103,55 @@ function sketch(p5: p5): void {
            }
         });
 
-        // redrawFont();
+        // setting up sliders for debugging
+        freakToCrazinessStrengthSlider = p5.createSlider(0, 10, 3.56, 0.01);
+        freakToCrazinessStrengthSlider.position(65, 10);
+        freakToCrazinessStrengthSlider.size(200);
+        let freakToCrazinessLabel: p5.Element = p5.createP("crazy");
+        freakToCrazinessLabel.style("position: absolute");
+        freakToCrazinessLabel.style("font-family: monospace");
+        freakToCrazinessLabel.style("font-weight: bold");
+        freakToCrazinessLabel.style("font-size: 15px");
+        freakToCrazinessLabel.style("left: 10px");
+        freakToCrazinessLabel.style("top: -3px");
+        freakToCrazinessValueText = p5.createP(String(freakToCrazinessStrengthSlider.value()));
+        freakToCrazinessValueText.style("position: absolute");
+        freakToCrazinessValueText.style("font-family: monospace");
+        freakToCrazinessValueText.style("font-size: 15px");
+        freakToCrazinessValueText.style("left: 285px");
+        freakToCrazinessValueText.style("top: -3px");
+        (freakToCrazinessStrengthSlider as any).changed(() => {
+            redrawFont();
+            freakToCrazinessValueText.html(String(freakToCrazinessStrengthSlider.value()));
+            console.log(freakToCrazinessStrengthSlider.value())
+        });
+
+        erosionStrengthSlider = p5.createSlider(0, 10, 4.44, 0.01);
+        erosionStrengthSlider.position(65, 50);
+        erosionStrengthSlider.size(200);
+        let erosionStrengthLabel: p5.Element = p5.createP("erode");
+        erosionStrengthLabel.style("position: absolute");
+        erosionStrengthLabel.style("font-family: monospace");
+        erosionStrengthLabel.style("font-weight: bold");
+        erosionStrengthLabel.style("font-size: 15px");
+        erosionStrengthLabel.style("left: 10px");
+        erosionStrengthLabel.style("top: 37px");
+        erosionStrengthValueText = p5.createP(String(erosionStrengthSlider.value()));
+        erosionStrengthValueText.style("position: absolute");
+        erosionStrengthValueText.style("font-family: monospace");
+        erosionStrengthValueText.style("font-size: 15px");
+        erosionStrengthValueText.style("left: 285px");
+        erosionStrengthValueText.style("top: 37px");
+        (erosionStrengthSlider as any).changed(() => {
+            redrawFont(false);
+            erosionStrengthValueText.html(String(erosionStrengthSlider.value()));
+        });
     };
 
     p5.windowResized = () : void => {
         p5.resizeCanvas(p5.windowWidth, p5.windowHeight);
 
-        redrawFont();
+        redrawFont(false);
     }
 
     p5.keyPressed = () : void => {

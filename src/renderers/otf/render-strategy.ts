@@ -121,11 +121,11 @@ export function freakToEroded(p5: p5,
     let nudgeFactor: number; //-7.6;//-8.3;
     let unprocessedTextPaths: otf.Path[];
 
-    if (options === undefined || !("nudgeFactor" in options) || !("unprocessedTextPaths" in options)) {
+    if (options === undefined || !("erosionStrength" in options) || !("unprocessedTextPaths" in options)) {
         console.error("render-strategy.ts | freakToEroded received malformed options parameter.");
         return;
     } else {
-        nudgeFactor = options["nudgeFactor"];
+        nudgeFactor = options["erosionStrength"];
         unprocessedTextPaths = options["unprocessedTextPaths"];
     }
 
@@ -148,7 +148,6 @@ export function freakToEroded(p5: p5,
         for (let i = 0; i < characterPath.commands.length; i++){
             let command: otf.PathCommand = characterPath.commands[i];
             let unprocessedCommand: otf.PathCommand = unprocessedCharacterPath.commands[i];
-            console.log(unprocessedCommand)
 
             let dx: number;
             let dy: number;
