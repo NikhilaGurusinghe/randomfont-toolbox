@@ -14,8 +14,8 @@
     "lint:ts": "eslint -c eslint.config.ts.mjs ./src",
     "stats": "webpack --mode development --profile --json > ./out/stats.json",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "predeploy": "pnpm run build",
-    "deploy": "gh-pages -d dist"
+    "predeploy": "pnpm run build:prod",
+    "deploy": "gh-pages -d out/dist"
   },
   "dependencies": {
     "p5": "^1.11.8"
