@@ -41,10 +41,7 @@ function sketch(p5: p5): void {
     function redrawFont(immediatelyRedraw: boolean = true): void {
         p5.background(255);
 
-        if (immediatelyRedraw ||
-            textPaths === undefined ||
-            unprocessedTextPaths === undefined ||
-            textPaths.length !== text.length) { // this condition is for when the text is updated (for debugging)
+        if (immediatelyRedraw) { // this condition is for when the text is updated (for debugging)
             let paths = OTFFontRenderer.getTextPaths(
                 p5,
                 libreBaskervilleRegOTF,
