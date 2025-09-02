@@ -47,75 +47,11 @@ export function filled(p5: p5, textPaths: otf.Path[], textFillStatuses: FillStat
     p5.pop();
 }
 
-export function freakToOriginal(p5: p5, textPaths: otf.Path[], textFillStatuses: FillStatus[][]) {
-    const randomUnit = 4.5;
-
-    p5.push();
-    p5.noStroke();
-    for (let characterIndex = 0; characterIndex < textPaths.length; characterIndex++){
-        const characterPath: otf.Path = textPaths[characterIndex];
-        const characterFillStatus: FillStatus[] = textFillStatuses[characterIndex];
-        let textFillStatusCounter: number = 0;
-
-        if (characterFillStatus[textFillStatusCounter] === FillStatus.FILLED) {
-            p5.fill(textForegroundColour);
-        } else if (characterFillStatus[textFillStatusCounter] === FillStatus.OPEN) {
-            p5.fill(textBackgroundColour);
-        }
-
-        for (let command of characterPath.commands) {
-            switch (command.type) {
-                case "M":
-                    p5.beginShape();
-                    p5.vertex(
-                        command.x + p5.random(-randomUnit, randomUnit),
-                        command.y + p5.random(-randomUnit, randomUnit)
-                    );
-                    break;
-                case "L":
-                    p5.vertex(
-                        command.x + p5.random(-randomUnit, randomUnit),
-                        command.y + p5.random(-randomUnit, randomUnit)
-                    );
-                    break;
-                case "C":
-                    p5.bezierVertex(
-                        command.x1 + p5.random(-randomUnit, randomUnit),
-                        command.y1 + p5.random(-randomUnit, randomUnit),
-                        command.x2 + p5.random(-randomUnit, randomUnit),
-                        command.y2 + p5.random(-randomUnit, randomUnit),
-                        command.x  + p5.random(-randomUnit, randomUnit),
-                        command.y  + p5.random(-randomUnit, randomUnit)
-                    );
-                    break;
-                case "Q":
-                    p5.quadraticVertex(
-                        command.x1 + p5.random(-randomUnit, randomUnit),
-                        command.y1 + p5.random(-randomUnit, randomUnit),
-                        command.x  + p5.random(-randomUnit, randomUnit),
-                        command.y  + p5.random(-randomUnit, randomUnit)
-                    );
-                    break;
-                case "Z":
-                    p5.endShape(p5.CLOSE);
-                    textFillStatusCounter++;
-                    if (characterFillStatus[textFillStatusCounter] === FillStatus.FILLED) {
-                        p5.fill(textForegroundColour);
-                    } else if (characterFillStatus[textFillStatusCounter] === FillStatus.OPEN) {
-                        p5.fill(textBackgroundColour);
-                    }
-                    break;
-            }
-        }
-    }
-    p5.pop();
-}
-
 // options looks like
-export function freakToEroded(p5: p5,
-                              textPaths: otf.Path[],
-                              textFillStatuses: FillStatus[][],
-                              options?: { [key: string]: any }) {
+export function erode(p5: p5,
+                      textPaths: otf.Path[],
+                      textFillStatuses: FillStatus[][],
+                      options?: { [key: string]: any }) {
 
     // nudge factor of 7-8.3 is ideal for a letterform that is almost non-existent
     let nudgeFactor: number; //-7.6;//-8.3;

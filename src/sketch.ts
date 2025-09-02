@@ -25,7 +25,10 @@ function sketch(p5: p5): void {
     // @ts-ignore
     let libreBaskervilleBoldP5 : p5.Font;
 
-    let text: string = "MY Beowolf";
+    let sampleTexts: string[] = ["Archaeopteryx", "The “Big Five”", "End-Ordovician", "Late Devonian", "End-Permian",
+                                 "End-Triassic", "End-Cretaceous"];
+
+    let text: string = sampleTexts[Math.round(p5.random(0, sampleTexts.length - 1))];
     let typeSize: number = 148;
     let textPaths: otf.Path[];
     let unprocessedTextPaths: otf.Path[];
@@ -57,7 +60,7 @@ function sketch(p5: p5): void {
         OTFFontRenderer.renderFont(
             p5,
             textPaths,
-            OTFFontRenderStrategy.freakToEroded,
+            OTFFontRenderStrategy.erode,
             { erosionStrength: -erosionStrengthSlider.value() },
             unprocessedTextPaths
         );
