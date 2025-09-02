@@ -42,7 +42,10 @@ function sketch(p5: p5): void {
         p5.background(255);
 
         if (immediatelyRedraw) { // this condition is for when the text is updated (for debugging)
-            let paths = OTFFontRenderer.getTextPaths(
+            let paths: {
+                originalTextPath: otf.Path[]
+                processedTextPath: otf.Path[]
+            } = OTFFontRenderer.getTextPaths(
                 p5,
                 libreBaskervilleRegOTF,
                 text,
