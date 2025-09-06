@@ -1,0 +1,31 @@
+/*
+ * To remove borders and scroll bars from the sketch page,
+ * and to keep canvas in the center of the browser window at all times.
+ */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+}
+
+main {
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+canvas {
+    grid-row: 1;
+    grid-column: 1;
+}
+
+
+/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaG9tZS5jc3MiLCJtYXBwaW5ncyI6IkFBQUE7OztFQUdFOztBQUVGO0lBQ0ksU0FBUztJQUNULFVBQVU7SUFDVixZQUFZO0FBQ2hCOztBQUVBO0lBQ0ksWUFBWTtJQUNaLGFBQWE7QUFDakI7O0FBRUE7SUFDSSxhQUFhO0lBQ2IsdUJBQXVCO0lBQ3ZCLG1CQUFtQjtJQUNuQixXQUFXO0lBQ1gsWUFBWTtBQUNoQjs7QUFFQTtJQUNJLFdBQVc7SUFDWCxjQUFjO0FBQ2xCIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vcmFuZG9tZm9udC8uL3NyYy9zdHlsZXMvc2tldGNoLmNzcyJdLCJzb3VyY2VzQ29udGVudCI6WyIvKlxuICogVG8gcmVtb3ZlIGJvcmRlcnMgYW5kIHNjcm9sbCBiYXJzIGZyb20gdGhlIHNrZXRjaCBwYWdlLFxuICogYW5kIHRvIGtlZXAgY2FudmFzIGluIHRoZSBjZW50ZXIgb2YgdGhlIGJyb3dzZXIgd2luZG93IGF0IGFsbCB0aW1lcy5cbiAqL1xuXG5odG1sLCBib2R5IHtcbiAgICBtYXJnaW46IDA7XG4gICAgcGFkZGluZzogMDtcbiAgICBib3JkZXI6IG5vbmU7XG59XG5cbmJvZHkge1xuICAgIHdpZHRoOiAxMDB2dztcbiAgICBoZWlnaHQ6IDEwMHZoO1xufVxuXG5tYWluIHtcbiAgICBkaXNwbGF5OiBncmlkO1xuICAgIGp1c3RpZnktY29udGVudDogY2VudGVyO1xuICAgIGFsaWduLWl0ZW1zOiBjZW50ZXI7XG4gICAgd2lkdGg6IDEwMCU7XG4gICAgaGVpZ2h0OiAxMDAlO1xufVxuXG5jYW52YXMge1xuICAgIGdyaWQtcm93OiAxO1xuICAgIGdyaWQtY29sdW1uOiAxO1xufVxuIl0sIm5hbWVzIjpbXSwic291cmNlUm9vdCI6IiJ9*/
