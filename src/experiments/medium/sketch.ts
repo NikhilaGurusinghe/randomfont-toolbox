@@ -61,22 +61,22 @@ function sketch(p5: p5): void {
             unprocessedTextPaths = paths.originalTextPath;
         }
 
-        OTFFontRenderer.renderFont(
-            p5,
-            textPaths,
-            OTFFontRenderStrategy.erode,
-            { erosionStrength: -erosionStrengthSlider.value() },
-            unprocessedTextPaths
-        );
-
-        // P5FontRenderer.render(
+        // OTFFontRenderer.renderFont(
         //     p5,
-        //     libreBaskervilleRegP5,
-        //     text,
-        //     typeSize,
-        //     0.13,
-        //     P5FontRenderer.renderStrategyBeowulf
+        //     textPaths,
+        //     OTFFontRenderStrategy.erode,
+        //     { erosionStrength: -erosionStrengthSlider.value() },
+        //     unprocessedTextPaths
         // );
+
+        P5FontRenderer.render(
+            p5,
+            libreBaskervilleRegP5,
+            text,
+            typeSize,
+            0.13,
+            P5FontRenderer.renderStrategyBeowulf
+        );
 
 
     }

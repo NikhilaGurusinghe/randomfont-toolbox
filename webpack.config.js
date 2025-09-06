@@ -29,8 +29,20 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     entry: {
-        sketch: {
+        home: {
             import: './src/sketch.ts',
+            dependOn: ['p5']
+        },
+        large: {
+            import: './src/experiments/large/sketch.ts',
+            dependOn: ['p5']
+        },
+        medium: {
+            import: './src/experiments/medium/sketch.ts',
+            dependOn: ['p5']
+        },
+        small: {
+            import: './src/experiments/small/sketch.ts',
             dependOn: ['p5']
         },
         p5: 'p5'
@@ -48,7 +60,7 @@ module.exports = {
                 use: [MiniCssExtractPlugin.loader, 'css-loader']
             },
             {
-                test: /\.ttf$/i,
+                test: /\.(ttf|otf|woff|woff2)$/i,
                 type: 'asset/resource',
                 generator: {
                     filename: 'assets/fonts/[name][ext]'
@@ -57,17 +69,44 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js', '.json']
+        extensions: ['.tsx', '.ts', '.js', '.json'],
+        alias: {
+            '@src': path.resolve(__dirname, 'src'),
+        },
+        modules: [path.resolve(__dirname, 'src'), 'node_modules']
     },
     plugins: [
         new HtmlWebpackPlugin({
             title: 'randomfont',
+            filename: 'index.html',
+            chunks: ['home', 'p5'],
+            inject: 'body'
+        }),
+        new HtmlWebpackPlugin({
+            title: 'large experiment',
+            filename: 'experiments/large/index.html',
+            chunks: ['large', 'p5'],
+            inject: 'body'
+        }),
+        new HtmlWebpackPlugin({
+            title: 'medium experiment',
+            filename: 'experiments/medium/index.html',
+            chunks: ['medium', 'p5'],
+            inject: 'body'
+        }),
+        new HtmlWebpackPlugin({
+            title: 'small experiment',
+            filename: 'experiments/small/index.html',
+            chunks: ['small', 'p5'],
             inject: 'body'
         }),
         new MiniCssExtractPlugin()
     ],
     optimization: {
-        emitOnErrors: false
+        emitOnErrors: false,
+        splitChunks: {
+            chunks: "all",
+        },
     },
     output: {
         path: path.resolve(__dirname, 'out/dist'),

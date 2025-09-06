@@ -18,7 +18,7 @@
     "deploy": "gh-pages -d out/dist"
   },
   "dependencies": {
-    "p5": "^1.11.8"
+    "p5": "^1.11.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

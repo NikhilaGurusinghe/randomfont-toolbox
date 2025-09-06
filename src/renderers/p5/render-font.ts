@@ -149,7 +149,7 @@ export function renderStrategyBeowulf(p5: p5, points: Point[]) : void {
     let maxJumpDistance = 20;
     let randomUnitModifier = 0.0000000000000000000000005;
     console.log("Random Unit Modifier is: " + randomUnitModifier);
-    let randomUnit = 7;
+    let randomUnit = 2;
     console.log("Random Unit: " + randomUnit);
 
     points[0] = {
