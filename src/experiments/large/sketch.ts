@@ -19,16 +19,16 @@ function sketch(p5: p5): void {
     const typeSize: number = 42;
     let textPaths: otf.Path[];
     let unprocessedTextPaths: otf.Path[];
-    const maxScrollY: number = 2080;
+    const maxScrollY: number = 1800;
     let scrollY: number = maxScrollY;
     const scrollSensitivity: number = 1;
     const lines = text.split(/\r?\n/);
-    const redrawInterval: number = 1000;
+    const redrawInterval: number = 100;
     let redrawTimer: number = 0;
     let textFillStatuses: FillStatus[][];
     const fillStatusSampleUnit: number = 1;
 
-    const freakToCrazinessValue: number = 1;
+    const freakToCrazinessValue: number = 1.3;
 
     function redrawFont(immediatelyRedraw: boolean = true): void {
         p5.background(255);
@@ -112,9 +112,12 @@ function sketch(p5: p5): void {
     }
 
     p5.mouseWheel = (event: WheelEvent): boolean => {
-        scrollY -= event.deltaY/scrollSensitivity;
-        scrollY = p5.constrain(scrollY, -maxScrollY, maxScrollY);
-        console.log(scrollY);
+        const candidate: number = scrollY - event.deltaY / scrollSensitivity;
+        const constrainedScrollY: number = p5.constrain(candidate, -maxScrollY, maxScrollY);
+
+        if (constrainedScrollY === scrollY) return false;
+
+        scrollY = constrainedScrollY;
         redrawFont();
         return false;
     };
