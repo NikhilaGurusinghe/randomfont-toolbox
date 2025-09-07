@@ -8,6 +8,8 @@ import libreBaskervilleRegPath from '@src/assets/fonts/Libre_Baskerville/LibreBa
 import * as OTFFontRenderer from '@src/renderers/otf/render-font';
 import * as OTFFontRenderStrategy from '@src/renderers/otf/render-strategy';
 import * as OTFPathPreprocessor from '@src/renderers/otf/path-preprocessor';
+// @ts-ignore
+import {mediumWordErosionValues} from "@src/experiments/medium/medium-word-erosion-values";
 
 function sketch(p5: p5): void {
 
@@ -15,17 +17,14 @@ function sketch(p5: p5): void {
 
     let text: string = "We’re destroying words — scores of them, \n" +
         "hundreds of them, every day. We’re cutting\n" +
-        "the language down to the bone";
+        "the language down to the bone.";
     const typeSize: number = 64;
     let textPaths: otf.Path[];
     let unprocessedTextPaths: otf.Path[];
     const lines = text.split(/\r?\n/);
 
-    let erosionStrengthSlider: p5.Element;
-    let erosionStrengthValueText: p5.Element;
-    let freakToCrazinessStrengthSlider: p5.Element;
-    let freakToCrazinessValueText: p5.Element;
-
+    const freakToCrazinessValue: number = 1.17;
+    const erosionStrengthValue: number = -3;
 
     function redrawFont(immediatelyRedraw: boolean = true): void {
         p5.background(255);
@@ -51,7 +50,7 @@ function sketch(p5: p5): void {
                 text,
                 typeSize,
                 OTFPathPreprocessor.freakTo,
-                { craziness: freakToCrazinessStrengthSlider.value() },
+                { craziness: freakToCrazinessValue },
                 { align: "left", lineHeight: 1, marginX: (p5.windowWidth - maxLineWidth) / 2, marginY: 0 }
             );
             textPaths = paths.processedTextPath;
@@ -62,12 +61,12 @@ function sketch(p5: p5): void {
             p5,
             textPaths,
             OTFFontRenderStrategy.erode,
-            { erosionStrength: -erosionStrengthSlider.value() },
+            { erosionStrength: mediumWordErosionValues.map(x => x * erosionStrengthValue) },
             unprocessedTextPaths
         );
     }
 
-    p5.setup = (): void => {
+    p5.setup = () : void => {
         p5.createCanvas(p5.windowWidth, p5.windowHeight);
 
         // opentype.js font initialization
@@ -83,50 +82,6 @@ function sketch(p5: p5): void {
                    console.log("opentype.js | " + libreBaskervilleRegPath + " could not be loaded: it was undefined");
                }
            }
-        });
-
-        // setting up sliders for debugging
-        freakToCrazinessStrengthSlider = p5.createSlider(0, 10, 3.56, 0.01);
-        freakToCrazinessStrengthSlider.position(65, 10);
-        freakToCrazinessStrengthSlider.size(200);
-        let freakToCrazinessLabel: p5.Element = p5.createP("crazy");
-        freakToCrazinessLabel.style("position: absolute");
-        freakToCrazinessLabel.style("font-family: monospace");
-        freakToCrazinessLabel.style("font-weight: bold");
-        freakToCrazinessLabel.style("font-size: 15px");
-        freakToCrazinessLabel.style("left: 10px");
-        freakToCrazinessLabel.style("top: -3px");
-        freakToCrazinessValueText = p5.createP(String(freakToCrazinessStrengthSlider.value()));
-        freakToCrazinessValueText.style("position: absolute");
-        freakToCrazinessValueText.style("font-family: monospace");
-        freakToCrazinessValueText.style("font-size: 15px");
-        freakToCrazinessValueText.style("left: 285px");
-        freakToCrazinessValueText.style("top: -3px");
-        (freakToCrazinessStrengthSlider as any).changed(() => {
-            redrawFont();
-            freakToCrazinessValueText.html(String(freakToCrazinessStrengthSlider.value()));
-            console.log(freakToCrazinessStrengthSlider.value())
-        });
-
-        erosionStrengthSlider = p5.createSlider(0, 10, 4.44, 0.01);
-        erosionStrengthSlider.position(65, 50);
-        erosionStrengthSlider.size(200);
-        let erosionStrengthLabel: p5.Element = p5.createP("erode");
-        erosionStrengthLabel.style("position: absolute");
-        erosionStrengthLabel.style("font-family: monospace");
-        erosionStrengthLabel.style("font-weight: bold");
-        erosionStrengthLabel.style("font-size: 15px");
-        erosionStrengthLabel.style("left: 10px");
-        erosionStrengthLabel.style("top: 37px");
-        erosionStrengthValueText = p5.createP(String(erosionStrengthSlider.value()));
-        erosionStrengthValueText.style("position: absolute");
-        erosionStrengthValueText.style("font-family: monospace");
-        erosionStrengthValueText.style("font-size: 15px");
-        erosionStrengthValueText.style("left: 285px");
-        erosionStrengthValueText.style("top: 37px");
-        (erosionStrengthSlider as any).changed(() => {
-            redrawFont(false);
-            erosionStrengthValueText.html(String(erosionStrengthSlider.value()));
         });
     };
 
