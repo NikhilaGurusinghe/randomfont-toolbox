@@ -23,7 +23,7 @@ function sketch(p5: p5): void {
     let unprocessedTextPaths: otf.Path[];
     const lines = text.split(/\r?\n/);
 
-    const freakToCrazinessValue: number = 1.17;
+    const freakToCrazinessValue: number = 1.36;
     const erosionStrengthValue: number = -3;
 
     function redrawFont(immediatelyRedraw: boolean = true): void {
