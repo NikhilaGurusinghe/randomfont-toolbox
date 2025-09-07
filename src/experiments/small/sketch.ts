@@ -12,7 +12,7 @@ let currLetterInWordToSpell: number = 0;
 // murderer
 const randomSeedQueryName: string = "random-seed";
 const heldStickerShadowColour: string = "rgba(0, 0, 0, 0.2)";
-const heldStickerShadowBlur: number = 8;
+const heldStickerShadowBlur: number = 12;
 const heldStickerShadowOffsetX: number = -3;
 const heldStickerShadowOffsetY: number = 3;
 const pastedStickerShadowColour: string = "rgba(0, 0, 0, 0.187)";
@@ -20,7 +20,7 @@ const pastedStickerShadowBlur: number = 3;
 const pastedStickerShadowOffsetX: number = 0;
 const pastedStickerShadowOffsetY: number = 0;
 const cursorType: string = "grab";
-const onMouseDownStickerSize: number = 0.97;
+const onMouseDownStickerSize: number = 1.03;
 const placedStickers: { sticker: p5.Image, coordinates: Point, rotation: number }[] = [];
 const letterImageMap: Map<string, p5.Image[]> = new Map<string, p5.Image[]>();
 // this stops the sticker from moving when mouse is down
@@ -77,6 +77,8 @@ function sketch(p5: p5) : void {
     p5.draw = () : void => {
         p5.clear();
 
+        drawGrid(15, 15, 230, 0.7);
+
         // draw previously placed stickers
         placedStickers.forEach(({ sticker, coordinates, rotation }) => {
             p5.push();
@@ -95,19 +97,25 @@ function sketch(p5: p5) : void {
         // draw the current held sticker under the mouse rotated around its center
         // shadow only when not pressed
         const isLeftMouseDown: boolean = p5.mouseIsPressed && p5.mouseButton === "left";
+        ctx.save();
+
         if (!isLeftMouseDown) {
-            ctx.save();
             ctx.shadowColor = heldStickerShadowColour;
             ctx.shadowBlur = heldStickerShadowBlur;
             ctx.shadowOffsetX = heldStickerShadowOffsetX;
             ctx.shadowOffsetY = heldStickerShadowOffsetY;
+        } else {
+            ctx.shadowColor = pastedStickerShadowColour;
+            ctx.shadowBlur = pastedStickerShadowBlur;
+            ctx.shadowOffsetX = pastedStickerShadowOffsetX;
+            ctx.shadowOffsetY = pastedStickerShadowOffsetY;
         }
 
         const translateX: number = isLeftMouseDown ? onMouseDownMousePosLock.x : p5.mouseX;
         const translateY: number = isLeftMouseDown ? onMouseDownMousePosLock.y : p5.mouseY;
 
-        const stickerWidth: number = currentHeldSticker.width * (isLeftMouseDown ? onMouseDownStickerSize : 1);
-        const stickerHeight: number = currentHeldSticker.height * (isLeftMouseDown ? onMouseDownStickerSize : 1);
+        const stickerWidth: number = currentHeldSticker.width * (!isLeftMouseDown ? onMouseDownStickerSize : 1);
+        const stickerHeight: number = currentHeldSticker.height * (!isLeftMouseDown ? onMouseDownStickerSize : 1);
 
         p5.push();
         p5.translate(translateX, translateY);
@@ -115,9 +123,8 @@ function sketch(p5: p5) : void {
         p5.image(currentHeldSticker, -stickerWidth / 2, -stickerHeight / 2, stickerWidth, stickerHeight);
         p5.pop();
 
-        if (!isLeftMouseDown) {
-            ctx.restore();
-        }
+        ctx.restore();
+
     }
 
     p5.windowResized = () : void => {
@@ -190,6 +197,26 @@ function sketch(p5: p5) : void {
         }
 
         return letterImage;
+    }
+
+    function drawGrid(rows: number = 10, columns: number = 10, strokeColour: number = 220, strokeWeight: number = 1) {
+        // compute square cell size so cells remain square
+        const cellSize = Math.min(p5.width / columns, p5.height / rows);
+
+        p5.push();
+        p5.stroke(strokeColour);
+        p5.strokeWeight(strokeWeight);
+
+        const numberOfColsHalf = Math.ceil((p5.width/2)/cellSize);
+        for (let x = -numberOfColsHalf; x < numberOfColsHalf; x++) {
+            p5.line(p5.width/2 + x * cellSize, 0, p5.width/2 + x * cellSize, p5.height);
+        }
+
+        const numberOfRowsHalf = Math.ceil((p5.height/2)/cellSize);
+        for (let y = -numberOfRowsHalf; y < numberOfRowsHalf; y++) {
+            p5.line( 0, p5.height/2 + y * cellSize, p5.width, p5.height/2 + y * cellSize);
+        }
+        p5.pop();
     }
 }
 
