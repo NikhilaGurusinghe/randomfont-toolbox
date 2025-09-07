@@ -23,7 +23,7 @@ function sketch(p5: p5): void {
     let scrollY: number = maxScrollY;
     const scrollSensitivity: number = 1;
     const lines = text.split(/\r?\n/);
-    const redrawInterval: number = 100;
+    const redrawInterval: number = 1000;
     let redrawTimer: number = 0;
     let textFillStatuses: FillStatus[][];
     const fillStatusSampleUnit: number = 1;
