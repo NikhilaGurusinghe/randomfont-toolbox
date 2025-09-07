@@ -47,27 +47,45 @@ export function filled(p5: p5, textPaths: otf.Path[], textFillStatuses: FillStat
     p5.pop();
 }
 
+function isNumberArray(x: unknown): x is number[] {
+    return Array.isArray(x) && x.every(v => typeof v === 'number');
+}
+
 // options looks like
 export function erode(p5: p5,
                       textPaths: otf.Path[],
                       textFillStatuses: FillStatus[][],
                       options?: { [key: string]: any }) {
 
-    // nudge factor of 7-8.3 is ideal for a letterform that is almost non-existent
-    let nudgeFactor: number; //-7.6;//-8.3;
     let unprocessedTextPaths: otf.Path[];
 
     if (options === undefined || !("erosionStrength" in options) || !("unprocessedTextPaths" in options)) {
         console.error("render-strategy.ts | freakToEroded received malformed options parameter.");
         return;
     } else {
-        nudgeFactor = options["erosionStrength"];
         unprocessedTextPaths = options["unprocessedTextPaths"];
+    }
+
+    // This allows for the nudge factor to be passed in as a single number or an array of numbers (one nudge factor for
+    // each character in textPaths.
+    const rawErosion= options["erosionStrength"]; //-7.6;//-8.3;
+    const isRawErosionNumberArray: boolean = isNumberArray(rawErosion);
+    if (!isRawErosionNumberArray && typeof rawErosion !== "number") {
+        console.error("render-strategy.ts | erosionStrength must be a number or number[]");
+        return;
+    }
+    if (isRawErosionNumberArray && (rawErosion as number[]).length !== textPaths.length) {
+        console.error("render-strategy.ts | if erosionStrength is a number[], then it must be length of textPaths" +
+            "currently rawErosion is length " + (rawErosion as number[]).length + " " +
+            "and textPaths.length is " + textPaths.length);
+        return;
     }
 
     p5.push();
     p5.noStroke();
     for (let characterIndex = 0; characterIndex < textPaths.length; characterIndex++){
+        // nudge factor of 7-8.3 is ideal for a letterform that is almost non-existent //-7.6;//-8.3;
+        const nudgeFactor: number = typeof rawErosion === "number" ? rawErosion : rawErosion[characterIndex];
         const characterPath: otf.Path = textPaths[characterIndex];
         const unprocessedCharacterPath: otf.Path = unprocessedTextPaths[characterIndex];
         const characterFillStatus: FillStatus[] = textFillStatuses[characterIndex];

@@ -172,7 +172,6 @@ function sketch(p5: p5) : void {
         } else if (p5.key === "ArrowDown") {
             currImageSizeMultiplier -= 0.01;
         }
-
     }
 
     // onMouseDown

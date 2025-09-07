@@ -4,37 +4,18 @@ import otf from 'opentype.js';
 import '@src/styles/sketch.css';
 
 import libreBaskervilleRegPath from '@src/assets/fonts/Libre_Baskerville/LibreBaskerville-Regular.ttf';
-import libreBaskervilleItalicPath from '@src/assets/fonts/Libre_Baskerville/LibreBaskerville-Italic.ttf';
-import libreBaskervilleBoldPath from '@src/assets/fonts/Libre_Baskerville/LibreBaskerville-Bold.ttf';
 
-// @ts-ignore
-import * as P5FontRenderer from '@src/renderers/p5/render-font';
-// @ts-ignore
 import * as OTFFontRenderer from '@src/renderers/otf/render-font';
-// @ts-ignore
 import * as OTFFontRenderStrategy from '@src/renderers/otf/render-strategy';
-// @ts-ignore
 import * as OTFPathPreprocessor from '@src/renderers/otf/path-preprocessor';
 
 function sketch(p5: p5): void {
 
-    // @ts-ignore
-    let libreBaskervilleRegP5 : p5.Font;
-    // @ts-ignore
     let libreBaskervilleRegOTF : otf.Font;
-    // @ts-ignore
-    let libreBaskervilleItalicP5 : p5.Font;
-    // @ts-ignore
-    let libreBaskervilleBoldP5 : p5.Font;
 
-    let sampleTexts: string[] = ["Archaeopteryx", "The “Big Five”", "End-Ordovician", "Late Devonian", "End-Permian",
-                                 "End-Triassic", "End-Cretaceous"];
-
-    let text: string = sampleTexts[Math.round(p5.random(0, sampleTexts.length - 1))];
-    let typeSize: number = 148;
-    // @ts-ignore
+    let text: string = "caaaaat";
+    let typeSize: number = 64;
     let textPaths: otf.Path[];
-    // @ts-ignore
     let unprocessedTextPaths: otf.Path[];
 
     let erosionStrengthSlider: p5.Element;
@@ -61,40 +42,16 @@ function sketch(p5: p5): void {
             unprocessedTextPaths = paths.originalTextPath;
         }
 
-        // OTFFontRenderer.renderFont(
-        //     p5,
-        //     textPaths,
-        //     OTFFontRenderStrategy.erode,
-        //     { erosionStrength: -erosionStrengthSlider.value() },
-        //     unprocessedTextPaths
-        // );
-
-        P5FontRenderer.render(
+        OTFFontRenderer.renderFont(
             p5,
-            libreBaskervilleRegP5,
-            text,
-            typeSize,
-            0.13,
-            P5FontRenderer.renderStrategyBeowulf
+            textPaths,
+            OTFFontRenderStrategy.erode,
+            { erosionStrength: [0, -erosionStrengthSlider.value()/2, -erosionStrengthSlider.value()/2,-erosionStrengthSlider.value()/2,-erosionStrengthSlider.value()/2,-erosionStrengthSlider.value()/2, 0] },
+            unprocessedTextPaths
         );
-
-
-    }
-
-    // p5 font initialization
-    p5.preload = (): void => {
-        libreBaskervilleRegP5 = p5.loadFont(libreBaskervilleRegPath);
-        libreBaskervilleItalicP5 = p5.loadFont(libreBaskervilleItalicPath);
-        libreBaskervilleBoldP5 = p5.loadFont(libreBaskervilleBoldPath);
     }
 
     p5.setup = (): void => {
-        window.addEventListener("afterprint", () => {
-            redrawFont(false);
-            erosionStrengthSlider.value(parseFloat(String(erosionStrengthSlider.value())) + 2);
-            erosionStrengthValueText.html(String(erosionStrengthSlider.value()));
-        });
-
         p5.createCanvas(p5.windowWidth, p5.windowHeight);
 
         // opentype.js font initialization
@@ -166,19 +123,7 @@ function sketch(p5: p5): void {
     p5.keyPressed = () : void => {
         let needsUpdate: boolean = false;
 
-        if (p5.key.length === 1) {
-            switch (p5.key) {
-                default:
-                    text += p5.key;
-                    break;
-            }
-            needsUpdate = true;
-        } else if (p5.key === "Backspace") {
-            text = text.slice(0, text.length - 1);
-            needsUpdate = true;
-        } else if (p5.key === "Enter") {
-            text += "\n";
-        } else if (p5.key === "ArrowUp") {
+        if (p5.key === "ArrowUp") {
             needsUpdate = true;
         }
 
