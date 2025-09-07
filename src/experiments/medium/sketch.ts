@@ -13,18 +13,33 @@ function sketch(p5: p5): void {
 
     let libreBaskervilleRegOTF : otf.Font;
 
-    let text: string = "caaaaat";
-    let typeSize: number = 64;
+    let text: string = "We’re destroying words — scores of them, \n" +
+        "hundreds of them, every day. We’re cutting\n" +
+        "the language down to the bone";
+    const typeSize: number = 64;
     let textPaths: otf.Path[];
     let unprocessedTextPaths: otf.Path[];
+    const lines = text.split(/\r?\n/);
 
     let erosionStrengthSlider: p5.Element;
     let erosionStrengthValueText: p5.Element;
     let freakToCrazinessStrengthSlider: p5.Element;
     let freakToCrazinessValueText: p5.Element;
 
+
     function redrawFont(immediatelyRedraw: boolean = true): void {
         p5.background(255);
+
+        // TODO: clean this up
+        // Measure the widest line (at (0,0)) for the given typeSize
+        const maxLineWidth = Math.max(
+            ...lines.map(line => {
+                const bb = libreBaskervilleRegOTF
+                    .getPath(line, 0, 0, typeSize, { kerning: true })
+                    .getBoundingBox();
+                return bb.x2 - bb.x1;
+            })
+        );
 
         if (immediatelyRedraw) { // this condition is for when the text is updated (for debugging)
             let paths: {
@@ -36,7 +51,8 @@ function sketch(p5: p5): void {
                 text,
                 typeSize,
                 OTFPathPreprocessor.freakTo,
-                { craziness: freakToCrazinessStrengthSlider.value() }
+                { craziness: freakToCrazinessStrengthSlider.value() },
+                { align: "left", lineHeight: 1, marginX: (p5.windowWidth - maxLineWidth) / 2, marginY: 0 }
             );
             textPaths = paths.processedTextPath;
             unprocessedTextPaths = paths.originalTextPath;
@@ -46,7 +62,7 @@ function sketch(p5: p5): void {
             p5,
             textPaths,
             OTFFontRenderStrategy.erode,
-            { erosionStrength: [0, -erosionStrengthSlider.value()/2, -erosionStrengthSlider.value()/2,-erosionStrengthSlider.value()/2,-erosionStrengthSlider.value()/2,-erosionStrengthSlider.value()/2, 0] },
+            { erosionStrength: -erosionStrengthSlider.value() },
             unprocessedTextPaths
         );
     }
@@ -117,7 +133,7 @@ function sketch(p5: p5): void {
     p5.windowResized = () : void => {
         p5.resizeCanvas(p5.windowWidth, p5.windowHeight);
 
-        redrawFont(false);
+        redrawFont();
     }
 
     p5.keyPressed = () : void => {

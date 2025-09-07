@@ -9,6 +9,18 @@ type FontRenderStrategy = (p5: p5,
                            options?: { [key: string]: any }) => void;
 type FontPreprocessor = (p5: p5, textPaths: otf.Path[], options?: { [key: string]: any }) => otf.Path[];
 
+// TODO: clean this up
+export type LayoutOptions = {
+    // Horizontal alignment per line
+    align?: "left" | "center" | "right";
+    // Multiplier for baseline distance: (ascender + descent) * lineHeight
+    lineHeight?: number;
+    // Extra margins for left/right alignment (pixels)
+    marginX?: number;
+    // Extra vertical offset for the entire block (pixels, added after centering)
+    marginY?: number;
+};
+
 export enum FillStatus {
     FILLED = "filled",
     OPEN = "open"
@@ -17,30 +29,85 @@ export enum FillStatus {
 export const textForegroundColour = 0;
 export const textBackgroundColour = 255;
 
+// TODO: clean this up
 export function getTextPaths(p5: p5,
                              font: otf.Font,
                              text: string,
                              typeSize: number,
                              fontPreprocessor: FontPreprocessor,
-                             fontPreprocessorOptions?: { [key: string]: any }):
+                             fontPreprocessorOptions?: { [key: string]: any },
+                             layoutOptions?: LayoutOptions):
     { originalTextPath: otf.Path[], processedTextPath: otf.Path[] } {
-    const textPath: otf.Path = font.getPath(text, 0, 0, typeSize, { kerning: true });
-    const textBoundingBox: otf.BoundingBox = textPath.getBoundingBox();
-    const textHeight: number = textBoundingBox.y2 - textBoundingBox.y1;
-    const textWidth: number = textBoundingBox.x2 - textBoundingBox.x1;
 
-    let textPaths: otf.Path[] = font.getPaths(
-        text,
-        (p5.windowWidth - textWidth) / 2,
-        (p5.windowHeight - textHeight + typeSize) / 2,
-        typeSize,
-        { kerning: true }
-    );
+    const lines: string[] = text.split(/\r?\n/);
 
-    let processedTextPaths: otf.Path[] = fontPreprocessor(p5, textPaths, fontPreprocessorOptions);
+    // Defaults
+    const align: "left" | "center" | "right" = layoutOptions?.align ?? "center";
+    const lineHeightMultiplier: number = layoutOptions?.lineHeight ?? 1.2;
+    const marginX: number = layoutOptions?.marginX ?? 0;
+    const marginY: number = layoutOptions?.marginY ?? 0;
+
+    // Font metrics (in pixels at given typeSize)
+    const scale = typeSize / font.unitsPerEm;
+    const ascent = font.ascender * scale;           // positive
+    const descent = Math.abs(font.descender) * scale; // positive
+    const baselineGap = (ascent + descent) * lineHeightMultiplier;
+
+    // Precompute per-line bboxes at (0, 0) baseline to measure widths
+    const lineBBoxes: otf.BoundingBox[] = lines.map(line => {
+        const path = font.getPath(line, 0, 0, typeSize, { kerning: true });
+        return path.getBoundingBox();
+    });
+    const lineWidths: number[] = lineBBoxes.map(bb => bb.x2 - bb.x1);
+
+    // Overall block height for centering: first line top to last line bottom
+    const blockHeight = (ascent + descent) + (lines.length - 1) * baselineGap;
+
+    // Top of the visual block and baseline for the first line
+    const top = (p5.windowHeight - blockHeight) / 2 + marginY;
+    const baseline0 = top + ascent;
+
+    // Build all paths with per-line positioning
+    let textPaths: otf.Path[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const bb = lineBBoxes[i];
+        const lineWidth = lineWidths[i];
+
+        // Desired left based on alignment
+        let desiredLeft: number;
+        switch (align) {
+            case "left":
+                desiredLeft = marginX;
+                break;
+            case "right":
+                desiredLeft = p5.windowWidth - lineWidth - marginX;
+                break;
+            case "center":
+            default:
+                desiredLeft = (p5.windowWidth - lineWidth) / 2;
+                break;
+        }
+
+        const baselineY = baseline0 + i * baselineGap;
+        // Adjust x by -bb.x1 so that the left edge of the bbox lands at desiredLeft
+        const x = desiredLeft - bb.x1;
+
+        const linePaths: otf.Path[] = font.getPaths(
+            line,
+            x,
+            baselineY,
+            typeSize,
+            { kerning: true }
+        );
+
+        textPaths.push(...linePaths);
+    }
+
+    const processedTextPaths: otf.Path[] = fontPreprocessor(p5, textPaths, fontPreprocessorOptions);
 
     if (textPaths.length !== processedTextPaths.length)
-        console.error("render-font.ts | something has gone wrong in otf\render-font.ts#getTextPaths" +
+        console.error("render-font.ts | something has gone wrong in otf\\render-font.ts#getTextPaths" +
             " regarding the lengths of the outputted otf.Path[]");
 
     return { originalTextPath: textPaths, processedTextPath: processedTextPaths };
