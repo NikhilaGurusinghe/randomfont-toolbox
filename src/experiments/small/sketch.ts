@@ -24,7 +24,7 @@ const gridColumns: number = 20;
 const gridStrokeColour: number = 100;
 const gridStrokeAlpha: number = 0.15;
 const gridStrokeWeight: number = 0.6;
-const imageSizeMultiplier: number = 0.5;
+let imageSizeMultiplier: number = 0.5;
 const cursorType: string = "grab";
 const onMouseDownStickerSize: number = 1.03;
 const placedStickers: { sticker: p5.Image, coordinates: Point, rotation: number }[] = [];
@@ -83,8 +83,6 @@ function sketch(p5: p5) : void {
     p5.draw = () : void => {
         p5.clear();
         const areAllLettersDrawn: boolean = currLetterInWordToSpell >= wordToSpell.length + 1;
-        console.log(currLetterInWordToSpell + " >= " + wordToSpell.length)
-        console.log(areAllLettersDrawn)
 
         if (!areAllLettersDrawn) {
             drawGrid(gridRows, gridColumns, gridStrokeColour, gridStrokeAlpha, gridStrokeWeight);
@@ -158,6 +156,25 @@ function sketch(p5: p5) : void {
         p5.resizeCanvas(p5.windowWidth, p5.windowHeight);
     }
 
+    p5.mouseWheel = (event: WheelEvent) : boolean => {
+        if (event.deltaY > 0) {
+            currentStickerRotation += 1;
+        } else {
+            currentStickerRotation -= 1;
+        }
+
+        return false;
+    }
+
+    p5.keyPressed = () : void => {
+        if (p5.key === "ArrowUp") {
+            imageSizeMultiplier += 0.01;
+        } else if (p5.key === "ArrowDown") {
+            imageSizeMultiplier -= 0.01;
+        }
+
+    }
+
     // onMouseDown
     p5.mousePressed = () : void => {
         if (p5.mouseButton !== "left")  return;
@@ -169,8 +186,8 @@ function sketch(p5: p5) : void {
     }
 
     // onMouseUp
-    p5.mouseReleased = () : void => {
-        if (p5.mouseButton !== "left" || currLetterInWordToSpell >= wordToSpell.length + 1)  return;
+    p5.mouseReleased = () : boolean => {
+        if (p5.mouseButton !== "left" || currLetterInWordToSpell >= wordToSpell.length + 1)  return false;
 
         // left mouse clicks only past this point
         // this supports the behaviour where stops the sticker from moving when mouse is down
@@ -186,17 +203,15 @@ function sketch(p5: p5) : void {
         if (nextSticker === undefined) {
             console.error("sketch.ts | Fatal Error: at letter \"" + wordToSpell[0] + "\" there was no associated " +
                 "image paths in letterImageMap (.get returned undefined).");
-            return; // TODO better error handling here
+            return false; // TODO better error handling here
         } else if (nextSticker === null) {
-            //currentHeldSticker = null;
-            console.log("NO MORE STICKERS!!")
             p5.cursor("not-allowed");
         } else {
             currentHeldSticker = nextSticker;
-            console.log(letterImageMap)
         }
         currentStickerRotation = p5.random(-maxStickerRotation, maxStickerRotation);
-        console.log(currentStickerRotation)
+
+        return false;
     }
 
     function getNextRandomLetterImage(withoutReplacement: boolean = true) : p5.Image | undefined | null {
@@ -206,7 +221,6 @@ function sketch(p5: p5) : void {
             return null;
         }
 
-        console.log(wordToSpell[currLetterInWordToSpell])
         const nextLetterImage: p5.Image | undefined =
             getRandomLetterImage(wordToSpell[currLetterInWordToSpell], withoutReplacement);
 

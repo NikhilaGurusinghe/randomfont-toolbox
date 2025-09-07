@@ -23,6 +23,7 @@
  */
 
 const path = require('path');
+const ImageMinimizerPlugin = require('image-minimizer-webpack-plugin');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -68,7 +69,7 @@ module.exports = {
             },
             {
                 test: /\.(png|svg|jpg|jpeg|gif)$/i,
-                type: 'asset/resource',
+                type: 'asset',
                 generator: {
                     filename: 'assets/images/[name].[contenthash:8][ext]'
                 }
@@ -114,6 +115,37 @@ module.exports = {
         splitChunks: {
             chunks: "all",
         },
+        minimizer: [
+            new ImageMinimizerPlugin({
+                minimizer: {
+                    implementation: ImageMinimizerPlugin.sharpMinify,
+                    options: {
+                        encodeOptions: {
+                            jpeg: {
+                                // https://sharp.pixelplumbing.com/api-output#jpeg
+                                quality: 100,
+                            },
+                            webp: {
+                                // https://sharp.pixelplumbing.com/api-output#webp
+                                lossless: true,
+                            },
+                            avif: {
+                                // https://sharp.pixelplumbing.com/api-output#avif
+                                lossless: true,
+                            },
+
+                            // PNG by default sets the quality to 100%, which is same as lossless
+                            // https://sharp.pixelplumbing.com/api-output#png
+                            png: { quality: 90 },
+
+                            // GIF does not support lossless compression at all
+                            // https://sharp.pixelplumbing.com/api-output#gif
+                            gif: {},
+                        },
+                    },
+                },
+            }),
+        ]
     },
     output: {
         path: path.resolve(__dirname, 'out/dist'),
