@@ -5,7 +5,7 @@ import '@src/styles/sketch.css';
 import * as ReadQueryParams from '@src/utils/read-query-params';
 import { letterImagePaths } from './magazine-letter-paths';
 
-const wordToSpell: string = "DAransom";
+const wordToSpell: string = "ransom";
 let currLetterInWordToSpell: number = 0;
 // ransom
 // anonymous
@@ -15,10 +15,16 @@ const heldStickerShadowColour: string = "rgba(0, 0, 0, 0.2)";
 const heldStickerShadowBlur: number = 12;
 const heldStickerShadowOffsetX: number = -3;
 const heldStickerShadowOffsetY: number = 3;
-const pastedStickerShadowColour: string = "rgba(0, 0, 0, 0.187)";
+const pastedStickerShadowColour: string = "rgba(0, 0, 0, 0.34)";
 const pastedStickerShadowBlur: number = 3;
 const pastedStickerShadowOffsetX: number = 0;
 const pastedStickerShadowOffsetY: number = 0;
+const gridRows: number = 20;
+const gridColumns: number = 20;
+const gridStrokeColour: number = 100;
+const gridStrokeAlpha: number = 0.15;
+const gridStrokeWeight: number = 0.6;
+const imageSizeMultiplier: number = 0.5;
 const cursorType: string = "grab";
 const onMouseDownStickerSize: number = 1.03;
 const placedStickers: { sticker: p5.Image, coordinates: Point, rotation: number }[] = [];
@@ -76,23 +82,39 @@ function sketch(p5: p5) : void {
 
     p5.draw = () : void => {
         p5.clear();
+        const areAllLettersDrawn: boolean = currLetterInWordToSpell >= wordToSpell.length + 1;
+        console.log(currLetterInWordToSpell + " >= " + wordToSpell.length)
+        console.log(areAllLettersDrawn)
 
-        drawGrid(15, 15, 230, 0.7);
+        if (!areAllLettersDrawn) {
+            drawGrid(gridRows, gridColumns, gridStrokeColour, gridStrokeAlpha, gridStrokeWeight);
+        }
 
         // draw previously placed stickers
         placedStickers.forEach(({ sticker, coordinates, rotation }) => {
+            const scaledStickerWidth = sticker.width * imageSizeMultiplier;
+            const scaledStickerHeight = sticker.height * imageSizeMultiplier;
             p5.push();
-            p5.translate(coordinates.x + sticker.width / 2, coordinates.y + sticker.height / 2);
+            p5.translate(coordinates.x + scaledStickerWidth / 2, coordinates.y + scaledStickerHeight / 2);
             p5.rotate(rotation);
             ctx.save();
             ctx.shadowColor = pastedStickerShadowColour;
             ctx.shadowBlur = pastedStickerShadowBlur;
             ctx.shadowOffsetX = pastedStickerShadowOffsetX;
             ctx.shadowOffsetY = pastedStickerShadowOffsetY;
-            p5.image(sticker, -sticker.width / 2, -sticker.height / 2);
+            p5.image(
+                sticker,
+                -scaledStickerWidth / 2,
+                -scaledStickerHeight / 2,
+                scaledStickerWidth,
+                scaledStickerHeight
+            );
             ctx.restore();
             p5.pop();
         });
+
+        // don't draw anything under the cursor if all letters are drawn
+        if (areAllLettersDrawn) return;
 
         // draw the current held sticker under the mouse rotated around its center
         // shadow only when not pressed
@@ -114,13 +136,18 @@ function sketch(p5: p5) : void {
         const translateX: number = isLeftMouseDown ? onMouseDownMousePosLock.x : p5.mouseX;
         const translateY: number = isLeftMouseDown ? onMouseDownMousePosLock.y : p5.mouseY;
 
-        const stickerWidth: number = currentHeldSticker.width * (!isLeftMouseDown ? onMouseDownStickerSize : 1);
-        const stickerHeight: number = currentHeldSticker.height * (!isLeftMouseDown ? onMouseDownStickerSize : 1);
+        const stickerWidth: number = currentHeldSticker.width * (!isLeftMouseDown ? onMouseDownStickerSize : 1) * imageSizeMultiplier;
+        const stickerHeight: number = currentHeldSticker.height * (!isLeftMouseDown ? onMouseDownStickerSize : 1) * imageSizeMultiplier;
 
         p5.push();
         p5.translate(translateX, translateY);
         p5.rotate(currentStickerRotation);
-        p5.image(currentHeldSticker, -stickerWidth / 2, -stickerHeight / 2, stickerWidth, stickerHeight);
+        p5.image(
+            currentHeldSticker,
+            -stickerWidth / 2,
+            -stickerHeight / 2,
+            stickerWidth,
+            stickerHeight);
         p5.pop();
 
         ctx.restore();
@@ -143,15 +170,15 @@ function sketch(p5: p5) : void {
 
     // onMouseUp
     p5.mouseReleased = () : void => {
-        if (p5.mouseButton !== "left")  return;
+        if (p5.mouseButton !== "left" || currLetterInWordToSpell >= wordToSpell.length + 1)  return;
 
         // left mouse clicks only past this point
         // this supports the behaviour where stops the sticker from moving when mouse is down
         placedStickers.push({
             sticker: currentHeldSticker,
             coordinates:
-                {x: onMouseDownMousePosLock.x - currentHeldSticker.width / 2,
-                    y: onMouseDownMousePosLock.y - currentHeldSticker.height / 2},
+                {x: onMouseDownMousePosLock.x - (currentHeldSticker.width * imageSizeMultiplier) / 2,
+                    y: onMouseDownMousePosLock.y - (currentHeldSticker.height * imageSizeMultiplier) / 2},
             rotation: currentStickerRotation
         });
 
@@ -163,6 +190,7 @@ function sketch(p5: p5) : void {
         } else if (nextSticker === null) {
             //currentHeldSticker = null;
             console.log("NO MORE STICKERS!!")
+            p5.cursor("not-allowed");
         } else {
             currentHeldSticker = nextSticker;
             console.log(letterImageMap)
@@ -173,7 +201,10 @@ function sketch(p5: p5) : void {
 
     function getNextRandomLetterImage(withoutReplacement: boolean = true) : p5.Image | undefined | null {
         // if we're requesting letters that don't exist then return null
-        if (currLetterInWordToSpell >= wordToSpell.length) return null;
+        if (currLetterInWordToSpell >= wordToSpell.length) {
+            currLetterInWordToSpell += 1;
+            return null;
+        }
 
         console.log(wordToSpell[currLetterInWordToSpell])
         const nextLetterImage: p5.Image | undefined =
@@ -199,12 +230,12 @@ function sketch(p5: p5) : void {
         return letterImage;
     }
 
-    function drawGrid(rows: number = 10, columns: number = 10, strokeColour: number = 220, strokeWeight: number = 1) {
+    function drawGrid(rows: number, columns: number, strokeColour: number, strokeAlpha: number, strokeWeight: number) {
         // compute square cell size so cells remain square
         const cellSize = Math.min(p5.width / columns, p5.height / rows);
 
         p5.push();
-        p5.stroke(strokeColour);
+        p5.stroke(strokeColour, Math.round(strokeAlpha * 255));
         p5.strokeWeight(strokeWeight);
 
         const numberOfColsHalf = Math.ceil((p5.width/2)/cellSize);
