@@ -8,8 +8,8 @@ import libreBaskervilleRegPath from '@src/assets/fonts/Libre_Baskerville/LibreBa
 import * as OTFFontRenderer from '@src/renderers/otf/render-font';
 import * as OTFFontRenderStrategy from '@src/renderers/otf/render-strategy';
 import * as OTFPathPreprocessor from '@src/renderers/otf/path-preprocessor';
-// @ts-ignore
-import {mediumWordErosionValues} from "@src/experiments/medium/medium-word-erosion-values";
+import { mediumWordErosionValues } from "@src/experiments/medium/medium-word-erosion-values";
+import {FillStatus} from "@src/renderers/otf/render-font";
 
 function sketch(p5: p5): void {
 
@@ -57,9 +57,17 @@ function sketch(p5: p5): void {
             unprocessedTextPaths = paths.originalTextPath;
         }
 
+        // sorting out rendering holes in fonts
+        // unprocessedTextPaths can be used here if the processing you do on your text is so extreme that it destroys
+        // my very fickle algorithm for determining the number and order of holes in a letterform :)
+        const textFillStatuses: FillStatus[][] = unprocessedTextPaths === undefined ?
+            OTFFontRenderer.getTextFillStatuses(p5, textPaths) : OTFFontRenderer.getTextFillStatuses(p5, unprocessedTextPaths);
+
+
         OTFFontRenderer.renderFont(
             p5,
             textPaths,
+            textFillStatuses,
             OTFFontRenderStrategy.erode,
             { erosionStrength: mediumWordErosionValues.map(x => x * erosionStrengthValue) },
             unprocessedTextPaths

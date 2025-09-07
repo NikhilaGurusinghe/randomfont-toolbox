@@ -115,15 +115,10 @@ export function getTextPaths(p5: p5,
 
 export function renderFont(p5: p5,
                            textPaths: otf.Path[],
+                           textFillStatuses: FillStatus[][],
                            fontRenderer: FontRenderStrategy,
                            fontRendererOptions?: { [key: string]: any },
                            unprocessedTextPaths?: otf.Path[]) : otf.Path[] {
-
-    // sorting out rendering holes in fonts
-    // unprocessedTextPaths can be used here if the processing you do on your text is so extreme that it destroys
-    // my very fickle algorithm for determining the number and order of holes in a letterform :)
-    const textFillStatuses: FillStatus[][] = unprocessedTextPaths === undefined ?
-        getTextFillStatuses(p5, textPaths) : getTextFillStatuses(p5, unprocessedTextPaths);
 
     // unprocessedTextPaths tend to be useful in FontRenderStrategy as they preserve the original geometry
     // and curves of the font before they are processed crazily
@@ -157,9 +152,8 @@ function generateSampleOffsetGrid(sideLength: number, sampleUnit: number): [x: n
     return sampleOffsetGrid;
 }
 
-function getTextFillStatuses(p5: p5, textPaths: otf.Path[]): FillStatus[][] {
+export function getTextFillStatuses(p5: p5, textPaths: otf.Path[], sampleUnit: number = 2): FillStatus[][] {
     const toPathDataResolution: number = 3;
-    const sampleUnit: number = 2;
     const sampleOffsetKernel: [x: number, y: number][] = generateSampleOffsetGrid(5, sampleUnit);
     const ctx: CanvasRenderingContext2D = p5.drawingContext;
 
@@ -245,9 +239,9 @@ function getTextFillStatuses(p5: p5, textPaths: otf.Path[]): FillStatus[][] {
 
             // TODO need to do error handling for what happens when we fall through here without a status
             if (!wasFillStatusAssigned) {
-                // textFillStatuses[characterIndex].push(FillStatus.FILLED);
-                console.error("render-font-otf.ts | getTextFillStatuses could not find a suitable sample point " +
-                    "(at character index " + characterIndex + ") for calculating text fill status")
+                textFillStatuses[characterIndex].push(FillStatus.OPEN);
+                // console.error("render-font-otf.ts | getTextFillStatuses could not find a suitable sample point " +
+                //     "(at character index " + characterIndex + ") for calculating text fill status")
             }
         }
     }
