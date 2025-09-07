@@ -24,10 +24,10 @@ const gridColumns: number = 20;
 const gridStrokeColour: number = 100;
 const gridStrokeAlpha: number = 0.15;
 const gridStrokeWeight: number = 0.6;
-let imageSizeMultiplier: number = 0.5;
+let currImageSizeMultiplier: number = 0.5;
 const cursorType: string = "grab";
 const onMouseDownStickerSize: number = 1.03;
-const placedStickers: { sticker: p5.Image, coordinates: Point, rotation: number }[] = [];
+const placedStickers: { sticker: p5.Image, coordinates: Point, rotation: number, imageSizeMultiplier: number }[] = [];
 const letterImageMap: Map<string, p5.Image[]> = new Map<string, p5.Image[]>();
 // this stops the sticker from moving when mouse is down
 let onMouseDownMousePosLock: Point = { x: 0, y: 0 };
@@ -89,7 +89,7 @@ function sketch(p5: p5) : void {
         }
 
         // draw previously placed stickers
-        placedStickers.forEach(({ sticker, coordinates, rotation }) => {
+        placedStickers.forEach(({ sticker, coordinates, rotation, imageSizeMultiplier }) => {
             const scaledStickerWidth = sticker.width * imageSizeMultiplier;
             const scaledStickerHeight = sticker.height * imageSizeMultiplier;
             p5.push();
@@ -134,8 +134,8 @@ function sketch(p5: p5) : void {
         const translateX: number = isLeftMouseDown ? onMouseDownMousePosLock.x : p5.mouseX;
         const translateY: number = isLeftMouseDown ? onMouseDownMousePosLock.y : p5.mouseY;
 
-        const stickerWidth: number = currentHeldSticker.width * (!isLeftMouseDown ? onMouseDownStickerSize : 1) * imageSizeMultiplier;
-        const stickerHeight: number = currentHeldSticker.height * (!isLeftMouseDown ? onMouseDownStickerSize : 1) * imageSizeMultiplier;
+        const stickerWidth: number = currentHeldSticker.width * (!isLeftMouseDown ? onMouseDownStickerSize : 1) * currImageSizeMultiplier;
+        const stickerHeight: number = currentHeldSticker.height * (!isLeftMouseDown ? onMouseDownStickerSize : 1) * currImageSizeMultiplier;
 
         p5.push();
         p5.translate(translateX, translateY);
@@ -168,9 +168,9 @@ function sketch(p5: p5) : void {
 
     p5.keyPressed = () : void => {
         if (p5.key === "ArrowUp") {
-            imageSizeMultiplier += 0.01;
+            currImageSizeMultiplier += 0.01;
         } else if (p5.key === "ArrowDown") {
-            imageSizeMultiplier -= 0.01;
+            currImageSizeMultiplier -= 0.01;
         }
 
     }
@@ -194,9 +194,10 @@ function sketch(p5: p5) : void {
         placedStickers.push({
             sticker: currentHeldSticker,
             coordinates:
-                {x: onMouseDownMousePosLock.x - (currentHeldSticker.width * imageSizeMultiplier) / 2,
-                    y: onMouseDownMousePosLock.y - (currentHeldSticker.height * imageSizeMultiplier) / 2},
-            rotation: currentStickerRotation
+                {x: onMouseDownMousePosLock.x - (currentHeldSticker.width * currImageSizeMultiplier) / 2,
+                    y: onMouseDownMousePosLock.y - (currentHeldSticker.height * currImageSizeMultiplier) / 2},
+            rotation: currentStickerRotation,
+            imageSizeMultiplier: currImageSizeMultiplier,
         });
 
         const nextSticker: p5.Image | null | undefined = getNextRandomLetterImage();
