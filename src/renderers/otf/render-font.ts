@@ -1,7 +1,7 @@
 ﻿import p5 from 'p5';
 import otf from 'opentype.js';
-import {pathCounterCounter} from "./util/type-counters";
-import {extractShapesFromPath, getFirstStartPointInPath, pathCommandsToPathData} from "./util/otf-path-utils";
+import {pathCounterCounter} from "./utils/type-counters";
+import {extractShapesFromPath, getFirstStartPointInPath, pathCommandsToPathData} from "./utils/otf-path-utils";
 
 type FontRenderStrategy = (p5: p5,
                            textPaths: otf.Path[],

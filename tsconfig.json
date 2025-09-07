@@ -10,6 +10,12 @@
     "moduleResolution": "bundler",
     "rootDir": "./src",
 
+    /* Path mapping to match webpack alias */
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["src/*"]
+    },
+
     /* JSON Modules */
     "resolveJsonModule": true,
     "resolvePackageJsonExports": false,
