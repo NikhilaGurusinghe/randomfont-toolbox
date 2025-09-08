@@ -23,7 +23,7 @@ function sketch(p5: p5): void {
     let scrollY: number = maxScrollY;
     const scrollSensitivity: number = 1;
     const lines = text.split(/\r?\n/);
-    const redrawInterval: number = 1000;
+    const redrawInterval: number = 2000;
     let redrawTimer: number = 0;
     let textFillStatuses: FillStatus[][];
     const fillStatusSampleUnit: number = 1;
@@ -81,6 +81,13 @@ function sketch(p5: p5): void {
             undefined,
             unprocessedTextPaths
         );
+    }
+
+    p5.preload = () : void => {
+        // print all controls to an alert
+        alert("𝗖𝗼𝗻𝘁𝗿𝗼𝗹𝘀\n" +
+            "   𝘀𝗰𝗿𝗼𝗹𝗹 𝘄𝗵𝗲𝗲𝗹/𝘁𝗿𝗮𝗰𝗸𝗽𝗮𝗱 𝘀𝗰𝗿𝗼𝗹𝗹 🡺 scroll up and down\n");
+
     }
 
     p5.setup = () : void => {
