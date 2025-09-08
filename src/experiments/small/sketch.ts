@@ -203,6 +203,7 @@ function sketch(p5: p5) : void {
                 "clicking \"OK\" will refresh the page, and clicking \"Cancel\" will leave the page as is.")
 
             if (doesUserWantRefresh) location.reload();
+            return false;
         }
 
         // left mouse clicks only past this point
@@ -223,6 +224,16 @@ function sketch(p5: p5) : void {
             return false; // TODO better error handling here
         } else if (nextSticker === null) {
             p5.cursor("not-allowed");
+
+            if (currLetterInWordToSpell >= wordToSpell.length + 1) {
+                const doesUserWantRefresh: boolean = confirm("𝗗𝗼 𝘆𝗼𝘂 𝘄𝗮𝗻𝘁 𝘁𝗼 𝗿𝗲𝗳𝗿𝗲𝘀𝗵 𝘁𝗵𝗲 𝗽𝗮𝗴𝗲 𝗮𝗻𝗱 𝗴𝗲𝘁 𝗻𝗲𝘄 𝗹𝗲𝘁𝘁𝗲𝗿𝘀?\n" +
+                    "clicking \"OK\" will refresh the page, and clicking \"Cancel\" will remove the grid on the page " +
+                    "so screenshots with 𝘀𝗽𝗮𝗰𝗲𝗯𝗮𝗿 look nicer.")
+
+                if (doesUserWantRefresh) location.reload();
+                return false;
+            }
+
         } else {
             currentHeldSticker = nextSticker;
         }
