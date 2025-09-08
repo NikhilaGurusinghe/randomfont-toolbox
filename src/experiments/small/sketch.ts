@@ -40,6 +40,15 @@ let ctx: CanvasRenderingContext2D;
 function sketch(p5: p5) : void {
 
     p5.preload = () : void => {
+        // print all controls to an alert
+        alert("𝗖𝗼𝗻𝘁𝗿𝗼𝗹𝘀\n" +
+            "   𝗹𝗲𝗳𝘁 𝗰𝗹𝗶𝗰𝗸 🡺 place a letter down\n" +
+            "   𝘀𝗰𝗿𝗼𝗹𝗹 𝘄𝗵𝗲𝗲𝗹/𝘁𝗿𝗮𝗰𝗸𝗽𝗮𝗱 𝘀𝗰𝗿𝗼𝗹𝗹 🡺 rotate letter\n" +
+            "   𝘂𝗽 𝗮𝗿𝗿𝗼𝘄 🡺 scale letter up\n" +
+            "   𝗱𝗼𝘄𝗻 𝗮𝗿𝗿𝗼𝘄 🡺 scale letter down\n" +
+            "   𝘀𝗽𝗮𝗰𝗲𝗯𝗮𝗿 🡺 take a screenshot of the letters!" +
+            "after placing all letters click once more to refresh the page.");
+
         // setting anglemode to degrees
         p5.angleMode(p5.DEGREES);
 
@@ -171,6 +180,8 @@ function sketch(p5: p5) : void {
             currImageSizeMultiplier += 0.01;
         } else if (p5.key === "ArrowDown") {
             currImageSizeMultiplier -= 0.01;
+        } else if (p5.key === " ") {
+            p5.saveCanvas("ransom.png");
         }
     }
 
@@ -186,7 +197,13 @@ function sketch(p5: p5) : void {
 
     // onMouseUp
     p5.mouseReleased = () : boolean => {
-        if (p5.mouseButton !== "left" || currLetterInWordToSpell >= wordToSpell.length + 1)  return false;
+        if (p5.mouseButton !== "left")  return false;
+        if (currLetterInWordToSpell >= wordToSpell.length + 1) {
+            const doesUserWantRefresh: boolean = confirm("𝗗𝗼 𝘆𝗼𝘂 𝘄𝗮𝗻𝘁 𝘁𝗼 𝗿𝗲𝗳𝗿𝗲𝘀𝗵 𝘁𝗵𝗲 𝗽𝗮𝗴𝗲 𝗮𝗻𝗱 𝗴𝗲𝘁 𝗻𝗲𝘄 𝗹𝗲𝘁𝘁𝗲𝗿𝘀?\n" +
+                "clicking \"OK\" will refresh the page, and clicking \"Cancel\" will leave the page as is.")
+
+            if (doesUserWantRefresh) location.reload();
+        }
 
         // left mouse clicks only past this point
         // this supports the behaviour where stops the sticker from moving when mouse is down
