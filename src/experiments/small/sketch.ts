@@ -46,7 +46,7 @@ function sketch(p5: p5) : void {
             "   𝘀𝗰𝗿𝗼𝗹𝗹 𝘄𝗵𝗲𝗲𝗹/𝘁𝗿𝗮𝗰𝗸𝗽𝗮𝗱 𝘀𝗰𝗿𝗼𝗹𝗹 🡺 rotate letter\n" +
             "   𝘂𝗽 𝗮𝗿𝗿𝗼𝘄 🡺 scale letter up\n" +
             "   𝗱𝗼𝘄𝗻 𝗮𝗿𝗿𝗼𝘄 🡺 scale letter down\n" +
-            "   𝘀𝗽𝗮𝗰𝗲𝗯𝗮𝗿 🡺 take a screenshot of the letters!" +
+            "   𝘀𝗽𝗮𝗰𝗲𝗯𝗮𝗿 🡺 take a screenshot of the letters!\n" +
             "after placing all letters click once more to refresh the page.");
 
         // setting anglemode to degrees
